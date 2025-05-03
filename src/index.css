@@ -1,0 +1,20 @@
+@import './fonts/fonts.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: #A16753;
+  color: white;
+}

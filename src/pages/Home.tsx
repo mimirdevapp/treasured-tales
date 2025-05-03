@@ -1,0 +1,798 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Helmet } from "react-helmet";
+import ReactPlayer from 'react-player/lazy'; // Import ReactPlayer with lazy loading
+import { motion } from 'framer-motion';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
+import '@splidejs/splide/dist/css/splide.min.css';
+import { ArrowRight } from 'lucide-react';
+import adi from '../assets/aadithya.jpg'
+import dslr1 from '../assets/dslr(1).heic';
+import dslr2 from '../assets/dslr(2).heic';
+import dslr3 from '../assets/dslr(3).heic';
+import dslr4 from '../assets/dslr(4).heic';
+import dslr5 from '../assets/dslr(5).heic';
+import dslr6 from '../assets/dslr(6).heic';
+import dslr7 from '../assets/dslr(7).heic';
+import dslr8 from '../assets/dslr(8).jpg';
+import dslr9 from '../assets/dslr(9).jpg';
+import dslr10 from '../assets/dslr(10).jpg';
+import dslr13 from '../assets/dslr13.jpg';
+import dslr14 from '../assets/dslr14.jpg';
+import dslr15 from '../assets/dslr15.jpg';
+import dslr16 from '../assets/dslr16.jpg';
+import dslr20 from '../assets/dslr20.jpg';
+import dslr99 from '../assets/dslr99.heic';
+import bgvideo from '../assets/bgvideo.mp4';
+
+
+const Home = () => {
+  const heroImages = [
+    "https://images.unsplash.com/photo-1583939411023-14783179e581?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80",
+  ];
+
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalFading, setModalFading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [scrollY, setScrollY] = useState(0);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  const parallaxRef = useRef(null);
+  const videoSectionRef = useRef(null);
+  const playerRef = useRef(null);
+  const observer = useRef(null);
+  const scrollRevealSections = useRef([]);
+
+
+  const testimonials = [
+    {
+      id: 1,
+      couple: "LAVANYA & ESHAN",
+      image: dslr9,
+      quote: "Having The Treasured Tales photograph our wedding felt like having a dear friend who was dedicated to capturing the most precious moments of our life. Each photograph was taken thoughtfully, to express the essence of that moment and from a point of view, the pov of an insider who went on the emotional rollercoaster with us."
+    },
+    {
+      id: 2,
+      couple: "RAHUL & SANJANA",
+      image: dslr10,
+      quote: "We cannot thank The Treasured Tales enough for the beautiful memories they captured on our special day. Their attention to detail and ability to catch those candid moments made our wedding album truly special. The way they directed us felt so natural, we almost forgot we were being photographed!"
+    },
+    {
+      id: 3,
+      couple: "GAUTHAM & MEGHANA",
+      image: dslr99,
+      quote: "Working with The Treasured Tales team was the best decision we made for our wedding. They have this incredible talent for finding beauty in small moments - a glance, a smile, a tear. Their images tell our love story better than words ever could. We'll cherish these photographs for generations to come."
+    }
+  ];
+
+  useEffect(() => {
+    // Add touch-friendly class to body on mobile
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      document.body.classList.add('is-mobile');
+    }
+
+    return () => {
+      document.body.classList.remove('is-mobile');
+    };
+  }, []);
+
+  // Initialize Intersection Observer for scroll reveals
+  useEffect(() => {
+    // Options for the scroll reveal observer
+    const options = {
+      root: null, // Use the viewport as the root
+      rootMargin: '0px 0px -100px 0px', // Trigger a bit before elements come into view
+      threshold: 0.15 // Trigger when 15% of the element is visible
+    };
+
+    // Create an intersection observer for smooth reveal animations
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Use requestAnimationFrame for smoother animations
+          requestAnimationFrame(() => {
+            entry.target.classList.add('revealed');
+          });
+          // Once revealed, we don't need to observe it anymore
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, options);
+
+    // Select all elements with the scroll-reveal class
+    const sections = document.querySelectorAll('.scroll-reveal');
+    sections.forEach(section => {
+      revealObserver.observe(section);
+      scrollRevealSections.current.push(section);
+    });
+
+    return () => {
+      // Clean up the observer on component unmount
+      if (scrollRevealSections.current.length > 0) {
+        scrollRevealSections.current.forEach(section => {
+          revealObserver.unobserve(section);
+        });
+      }
+    };
+  }, []);
+
+  // Handle hero section image rotation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+        setIsTransitioning(false);
+      }, 500);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle video playback and parallax effect
+  useEffect(() => {
+    // Intersection Observer for video section
+    observer.current = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && playerRef.current) {
+        setVideoPlaying(true);
+      } else if (playerRef.current && videoPlaying) {
+        setVideoPlaying(false);
+      }
+    }, { threshold: 0.5 });
+
+    if (videoSectionRef.current) {
+      observer.current.observe(videoSectionRef.current);
+    }
+
+    // Throttled scroll handler for performance
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Close modal on escape key press
+    const handleEscKey = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+
+    // Prevent scrolling when modal is open
+    if (modalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('keydown', handleEscKey);
+      if (observer.current && videoSectionRef.current) {
+        observer.current.unobserve(videoSectionRef.current);
+      }
+    };
+  }, [videoPlaying, modalOpen]);
+
+  // Apply parallax effect when scroll position changes
+  useEffect(() => {
+    if (parallaxRef.current) {
+      // Use transform with translate3d for hardware acceleration
+      parallaxRef.current.style.transform = `translate3d(0, ${scrollY * 0.4}px, 0)`;
+    }
+  }, [scrollY]);
+
+  useEffect(() => {
+    // Enable smooth scrolling behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    return () => {
+      document.documentElement.style.scrollBehavior = 'auto';
+    };
+  }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const target = document.querySelector(location.hash);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
+
+  const carouselImages = [
+    dslr7,
+    dslr3,
+    dslr2,
+    dslr5,
+    dslr20,
+    dslr1,
+  ];
+
+  const openModal = (image) => {
+    setSelectedImage(image);
+    setModalOpen(true);
+    setModalFading(false);
+  };
+
+  const closeModal = () => {
+    setModalFading(true);
+    setTimeout(() => {
+      setModalOpen(false);
+      setModalFading(false);
+    }, 300);
+  };
+
+  const galleryItems = [
+    {
+      id: 1,
+      title: "Lavanya & Eshan",
+      date: "March 18, 2025",
+      category: "ENGAGEMENT",
+      image: dslr7,
+      link: "/gallery/lavanya-eshan-engagement"
+    },
+    {
+      id: 2,
+      title: "Rahul & Sanjana",
+      date: "April 5, 2023",
+      category: "WEDDING",
+      image: dslr4,
+      link: "/gallery/rahul-sanjana-wedding"
+    },
+    {
+      id: 3,
+      title: "Gauthum & Meghana",
+      date: "June 12, 2024",
+      category: "WEDDING",
+      image: dslr1,
+      link: "/gallery/gauthum-meghana-wedding"
+    },
+    {
+      id: 4,
+      title: "Lavanya & Eshan",
+      date: "February 24, 2025",
+      category: "ENGAGEMENT",
+      image: dslr20,
+      link: "/gallery/lavanya-eshan-engagement"
+    },
+    {
+      id: 5,
+      title: "Gauthum & Meghana",
+      date: "May 30, 2024",
+      category: "WEDDING",
+      image: dslr5,
+      link: "/gallery/gauthum-meghana-wedding"
+    },
+    {
+      id: 6,
+      title: "Rahul & Sanjana",
+      date: "August 17, 2024",
+      category: "ENGAGEMENT",
+      image: dslr2,
+      link: "/gallery/rahul-sanjana-engagement"
+    },
+  ];
+
+  return (
+    <div className="overflow-hidden">
+      <Helmet>
+        <title>Home | The Treasured Tales</title>
+      </Helmet>
+      {/* Hero Section with Parallax */}
+      <div className="relative h-screen overflow-hidden">
+        <div ref={parallaxRef} className="absolute inset-0 h-[120%] top-0 will-change-transform">
+          {heroImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ${currentImageIndex === index ? 'opacity-100' : 'opacity-0'
+                } ${isTransitioning ? 'transition-timing-function-ease-out' : ''}`}
+            >
+              <img
+                src={image}
+                alt={`Hero ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="text-center text-white px-4 md:transform-none transform -translate-y-16">
+            <h1 className="text-4xl sm:text-4xl md:text-6xl font-agraham mb-3 md:mb-6 tracking-widest leading-tight">Timeless tales of love</h1>
+            <h1 className="text-lg sm:text-xl md:text-3xl font-cormorant mb-4 md:mb-6">Crafted with intention, preserved with beauty.</h1>
+          </div>
+        </div>
+      </div>
+
+      {/*  Modern Approach */}
+      <div className="py-12 sm:py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+            <div className="md:order-2">
+              <img
+                src={dslr6}
+                alt="Modern Approach"
+                className="w-full h-[250px] sm:h-[300px] md:h-[600px] object-cover"
+              />
+            </div>
+            <div className="space-y-4 md:space-y-8 md:order-1">
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-agraham font-light text-gray-800 leading-tight">
+                A MODERN APPROACH
+              </h2>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-cormorant italic text-gray-700">
+                to an <span className="text-[#8C5117] font-semibold">age old tradition</span>
+              </h3>
+              <div className="w-20 h-[1px] bg-black/30"></div>
+              <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
+                At The Treasured Tales, we believe every wedding is a beautiful story waiting to be told. Our passion is to capture the real emotions, laughter, & tears of joy that make your day unique. We focus on the candid and heartfelt moments that truly matter, ensuring every memory is preserved.
+              </p>
+              <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
+                Let us turn your special day into a treasured tale you'll cherish forever, filled with memories that last a lifetime.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Carousel Section with Scroll Reveal */}
+      <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="featured-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-4xl md:text-5xl font-agraham text-gray-800">Featured Work</h2>
+            <div className="flex items-center justify-center my-4">
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">our favorite moments captured</p>
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+            </div>
+          </div>
+
+          {/* Updated Splide options for mobile */}
+          <Splide
+            options={{
+              type: 'loop',
+              perPage: 3,
+              perMove: 1,
+              gap: '1rem',
+              padding: { left: '0', right: '0' },
+              arrows: true,
+              pagination: true,
+              autoplay: true,
+              interval: 3000,
+              pauseOnHover: true,
+              resetProgress: false,
+              height: 'auto',
+              breakpoints: {
+                1024: {
+                  perPage: 2,
+                },
+                768: {
+                  perPage: 1,
+                  arrows: false,
+                  padding: { left: '1rem', right: '1rem' }, // Add padding
+                  pagination: true, // Hide pagination on mobile
+                },
+                640: {
+                  perPage: 1,
+                  arrows: false,
+                  padding: { left: '1rem', right: '1rem' },
+                  gap: '0.5rem', // Reduce gap on smallest screens
+                  pagination: true, // Hide pagination on mobile
+                },
+              },
+            }}
+            className="portfolio-splide"
+          >
+            {carouselImages.map((image, index) => (
+              <SplideSlide key={index} className="px-2">
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative group cursor-pointer overflow-hidden"
+                  onClick={() => openModal(image)}
+                >
+                  {/* Fixed height container with proper aspect ratio */}
+                  <div className="aspect-w-3 aspect-h-4 relative" style={{ maxHeight: '450px' }}>
+                    <img
+                      src={image}
+                      alt={`Portfolio ${index + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      style={{ objectPosition: 'center' }}
+                    />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="text-white text-sm tracking-widest font-montserrat border-b border-white pb-1">VIEW</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </SplideSlide>
+            ))}
+          </Splide>
+        </div>
+      </div>
+
+      {/* Video Section */}
+      <div ref={videoSectionRef} className="relative h-[80vh] md:h-screen w-full overflow-hidden scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+        {/* Background - Video Container (always visible) */}
+        <div className="absolute inset-0">
+          {/* ReactPlayer Container - Always visible */}
+          <div className="absolute inset-0">
+            <ReactPlayer
+              ref={playerRef}
+              url={bgvideo}
+              playing={videoPlaying}
+              loop
+              muted
+              playsinline
+              width="100%"
+              height="100%"
+              style={{ objectFit: 'cover' }}
+              config={{
+                file: {
+                  attributes: {
+                    style: {
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        {/* Content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4">
+          <h2 className="text-4xl md:text-6xl font-agraham mb-6 md:mb-8 tracking-wide">Frames of Forever</h2>
+          <div className="w-20 h-[1px] bg-white mb-6 md:mb-8"></div>
+          <div className="max-w-3xl text-center">
+            <p className="font-cormorant leading-relaxed text-lg md:text-2xl mb-8">
+              Every wedding is unique, and so are the films we create. We've redefined storytelling in the wedding world by capturing moments that are raw, emotional, and deeply personal. From diverse cultures to cherished traditions, each story we document on film is a heartfelt journey that continues to move and inspire us.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* EMOTION OVER EVERYTHING SECTION - NEW */}
+      {/* <div className="py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <div>
+              <img
+                src={dslr8}
+                alt="Couple on beach"
+                className="w-full h-[600px] object-cover"
+              />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-6xl font-agraham font-light text-gray-800">
+                EMOTION
+              </h2>
+              <h3 className="text-3xl font-cormorant italic text-gray-700">
+                over <span className="text-[#8C5117] font-semibold">everything</span>
+              </h3>
+              <div className="w-20 h-[1px] bg-black/30"></div>
+              <p className="text-black font-cormorant text-xl leading-relaxed">
+                Through a candid artistic approach, and a touch of creative, cinematic
+                direction, we are able to document the day as it truly was and as it truly
+                felt. Your wedding album won't just reflect timestamps from a timeline or
+                forced poses throughout the day, but rather your memories brought to life
+                through art.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div> */}
+
+      {/* GALLERY SECTION - NEW */}
+      <div className="py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-4xl md:text-5xl font-agraham text-gray-800">Gallery</h2>
+            <div className="flex items-center justify-center my-4">
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">a selection of wedding and engagement galleries</p>
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+            {galleryItems.map((item) => (
+              <div key={item.id} className="group relative overflow-hidden">
+                <Link to={item.link} className="block">
+                  <div className="aspect-[4/5] overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 bg-black/40 md:bg-transparent">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-cormorant">{item.title}</h3>
+                    <p className="mt-1 sm:mt-2 text-xs tracking-widest font-montserrat">{item.date} / {item.category}</p>
+                    <span className="mt-3 sm:mt-4 md:mt-6 text-xs tracking-widest font-montserrat border-b border-white pb-1">VIEW GALLERY</span>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 md:mt-16 items-center justify-center text-center">
+            <Link
+              to="/gallery"
+              className="inline-flex items-center px-8 md:px-12 py-3 md:py-4 border border-[#8C5117] hover:bg-[#8C5117] hover:text-white text-[#8C5117] font-montserrat tracking-wider text-sm transition-all duration-300 group"
+            >
+              VIEW MORE
+              <ArrowRight
+                className='ml-2 transition-transform duration-300'
+                size={16}
+              />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* TESTIMONIAL */}
+      <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center text-center">
+            <h2 className="text-5xl md:text-7xl font-agraham text-gray-800">TESTIMONIALS</h2>
+            <div className="flex items-center justify-center my-4 mb-8 md:mb-16">
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">some kind words from our clients</p>
+              <div className="hidden sm:block h-px w-16 bg-black/30"></div>
+            </div>
+
+            {/* Testimonial Navigation - More compact on mobile */}
+            <div className="flex flex-wrap justify-center gap-2 md:space-x-8 mb-8 md:mb-12">
+              {testimonials.map((testimonial, index) => (
+                <button
+                  key={testimonial.id}
+                  onClick={() => setActiveTestimonial(index)}
+                  className={`py-2 md:py-3 px-3 md:px-4 border-b-2 transition-all duration-300 font-cormorant text-sm md:text-base ${activeTestimonial === index
+                    ? 'border-[#8C5117] text-[#8C5117] font-bold'
+                    : 'border-transparent text-gray-500 hover:text-[#8C5117] hover:border-[#8C5117]/30'
+                    }`}
+                >
+                  {testimonial.couple}
+                </button>
+              ))}
+            </div>
+
+            {/* Testimonial Content - Adjusted height for mobile */}
+            <div className="max-w-4xl mx-auto w-full">
+              <div className="w-full h-[250px] sm:h-[300px] md:h-[650px] overflow-hidden relative mb-4 sm:mb-6 md:mb-10 testimonial-image">
+                <div className="relative w-full h-full transition-opacity duration-500">
+                  <img
+                    src={testimonials[activeTestimonial].image}
+                    alt={testimonials[activeTestimonial].couple}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Overlay with couple name in bottom left - smaller text on mobile */}
+                  <div className="absolute inset-0 bg-black/30">
+                    <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8">
+                      <h3 className="text-2xl md:text-4xl font-agraham text-white">{testimonials[activeTestimonial].couple}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quote Below Image - Smaller text on mobile */}
+              <div className="flex flex-col items-center justify-center text-center space-y-4 md:space-y-8 p-4 testimonial-quote">
+                <div className="w-20 md:w-32 h-[1px] bg-black/30"></div>
+                <p className="font-cormorant text-lg md:text-2xl italic leading-relaxed max-w-3xl mx-auto">
+                  "{testimonials[activeTestimonial].quote}"
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 md:mt-8">
+              <Link
+                to="/contact"
+                className="inline-block px-8 md:px-12 py-3 md:py-4 border border-[#8C5117] hover:bg-[#8C5117] hover:text-white text-[#8C5117] font-montserrat tracking-wider text-sm transition-all duration-300"
+              >
+                GET IN TOUCH
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* About Section with Scroll Reveal */}
+      <div className="py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="about-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+            <div className="relative">
+              <img
+                src={adi}
+                alt="Photographer"
+                className="w-full h-[300px] md:h-[600px] object-cover"
+              />
+            </div>
+            <div className="space-y-4 md:space-y-8 px-0 md:px-6">
+              <h2 className="text-4xl md:text-6xl font-agraham text-gray-800">Our Story</h2>
+              <div className="w-20 h-[1px] bg-black/30"></div>
+              <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
+                Amidst the whirlwind of life's most cherished moments, there existed a desire to capture more than just images. The Treasured Tales began as a vision to weave together the raw emotions and candid memories that make each wedding day unique.
+              </p>
+              <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
+                Our journey is guided by the belief that every photograph should tell a story-a story of love, of laughter, of tears of joy. We understand that behind every smile and every tear lies a tale waiting to be treasured forever.
+              </p>
+              <div className="pt-2 md:pt-4">
+                <span className="font-cormorant text-2xl md:text-3xl italic">Adhitya Ullal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lightbox Modal with Fade Effect */}
+      {modalOpen && (
+        <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 ${modalFading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
+          <div className="relative w-full h-full max-w-6xl max-h-[90vh] mx-auto p-2 md:p-8 flex items-center justify-center">
+            {/* Close button - larger touch target on mobile */}
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 md:top-6 md:right-6 z-10 bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors rounded-full p-4 md:p-3 touch-manipulation"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Image container */}
+            <div className={`w-full h-full flex items-center justify-center ${modalFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} transition-all duration-300`}>
+              <img
+                src={selectedImage}
+                alt="Full size image"
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS for scroll animations and carousel */}
+      <style jsx="true">{`
+        /* Add will-change to optimize animations */
+        .scroll-reveal {
+          will-change: transform, opacity;
+        }
+        
+        /* Custom aspect ratio support */
+        .aspect-w-3 {
+  position: relative;
+  padding-bottom: calc(4 / 3 * 100%);
+}
+
+.aspect-w-3 > img {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+        /* Gradually reveal sections with better easing function */
+        .scroll-reveal.revealed {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+          transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1), 
+                     transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        
+        /* Custom splide carousel styling */
+        .portfolio-splide .splide__arrow {
+          background: rgba(0, 0, 0, 0.0);
+          width: 3rem;
+          height: 3rem;
+        }
+        
+        .portfolio-splide .splide__arrow svg {
+          fill: white;
+          width: 1.2em;
+          height: 1.2em;
+        }
+        
+        .portfolio-splide .splide__pagination__page {
+          background: #ccc;
+          opacity: 0.7;
+        }
+        
+        .portfolio-splide .splide__pagination__page.is-active {
+          background: black;
+          transform: scale(1.2);
+        }
+
+        /* Add subtle staggered animation to gallery items on first load */
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        /* Optimize for lower end devices */
+        @media (prefers-reduced-motion: reduce) {
+          .scroll-reveal {
+            transition: none !important;
+          }
+          
+          .scroll-reveal.revealed {
+            opacity: 1 !important;
+            transform: none !important;
+          }
+          
+        }
+
+      /* Mobile optimization */
+  @media (max-width: 640px) {
+  /* Remove the padding-bottom change to aspect-w-3 */
+.aspect-w-3 {
+    padding-bottom: calc(4 / 3 * 100%) !important; 
+  }
+  .portfolio-splide {
+    padding-bottom: 0;
+  }
+      .parallax-disabled {
+    transform: none !important;
+  }
+
+  .scroll-reveal {
+    transition-duration: 800ms;
+  }
+
+  
+  /* Better video handling on mobile */
+  .video-section {
+    height: 70vh; /* Shorter on mobile */
+  }
+  }
+  
+  /* Improve touch targets on mobile */
+  @media (max-width: 768px) {
+    .portfolio-splide .splide__slide {
+      touch-action: pan-y;
+    }
+    
+    /* Make buttons more tappable */
+
+  }
+`}</style>
+    </div>
+  );
+};
+
+export default Home;
