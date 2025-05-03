@@ -108,8 +108,8 @@ const Contact = () => {
             </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
-          <h1 className="text-7xl font-agraham mb-6 text-gray-800">Get in Touch</h1>
-          <div className="w-20 h-[1px] bg-black/30 mb-20"></div>
+          <h1 className="text-5xl lg:text-7xl font-agraham mb-4 lg:mb-6 text-gray-800">Get in Touch</h1>
+          <div className="w-20 h-[1px] bg-black/30 mb-10 lg:mb-20"></div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-12 lg:gap-16 relative">

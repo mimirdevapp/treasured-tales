@@ -136,7 +136,7 @@ const Gallery = () => {
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
-          <h1 className="text-7xl font-agraham text-gray-800 mb-6 tracking">Gallery</h1>
+          <h1 className="text-5xl lg:text-7xl font-agraham text-gray-800 mb-4 lg:mb-6 tracking">Gallery</h1>
           <div className="w-20 h-[1px] bg-black/30"></div>
         </div>
 
