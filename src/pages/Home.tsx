@@ -110,6 +110,9 @@ const Home = () => {
         setIsLoading(false);
         // Keep defaults on error
       }
+      finally {
+        setIsLoading(false);
+      }
     };
   
     fetchData();
@@ -267,6 +270,13 @@ const Home = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    setIsLoading(false);
+  }, 8000);
+  return () => clearTimeout(timeout);
+}, []);
+
 
   const openModal = (image) => {
     setSelectedImage(image);
@@ -282,6 +292,24 @@ const Home = () => {
     }, 300);
   };
 
+  if (isLoading) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        color: '#000',
+      }}
+    >
+      LOADING
+    </div>
+  );
+}
 
   return (
     <div className="overflow-hidden">
