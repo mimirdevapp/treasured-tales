@@ -282,15 +282,6 @@ const Home = () => {
     }, 300);
   };
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700">
-        <p className="font-cormorant text-3xl tracking-widest text-gray-700 animate-pulse">
-          LOADING
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="overflow-hidden">
