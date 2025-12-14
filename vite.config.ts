@@ -8,5 +8,4 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   assetsInclude: ['**/*.heic'],
-  base: '/',
 });
