@@ -1,4 +1,4 @@
-const WP_BASE = "https://sandybrown-tiger-324612.hostingersite.com/wp-json/wp/v2";
+const WP_BASE = import.meta.env.VITE_WP_BASE;
 
 export async function getHeroSlides() {
   const res = await fetch(`${WP_BASE}/slide_show`);
