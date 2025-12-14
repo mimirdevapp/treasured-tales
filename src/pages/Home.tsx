@@ -6,34 +6,11 @@ import { motion } from 'framer-motion';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import '@splidejs/splide/dist/css/splide.min.css';
 import { ArrowRight } from 'lucide-react';
+import { getHeroSlides, getHomeStaticSection, getHomeVideo, getFeaturedWorks, getTestimonials, getGalleryPosts } from '../services/wpApi';
 import adi from '../assets/aadithya.jpg'
-import dslr1 from '../assets/dslr(1).heic';
-import dslr2 from '../assets/dslr(2).heic';
-import dslr3 from '../assets/dslr(3).heic';
-import dslr4 from '../assets/dslr(4).heic';
-import dslr5 from '../assets/dslr(5).heic';
-import dslr6 from '../assets/dslr(6).heic';
-import dslr7 from '../assets/dslr(7).heic';
-import dslr8 from '../assets/dslr(8).jpg';
-import dslr9 from '../assets/dslr(9).jpg';
-import dslr10 from '../assets/dslr(10).jpg';
-import dslr13 from '../assets/dslr13.jpg';
-import dslr14 from '../assets/dslr14.jpg';
-import dslr15 from '../assets/dslr15.jpg';
-import dslr16 from '../assets/dslr16.jpg';
-import dslr20 from '../assets/dslr20.jpg';
-import dslr99 from '../assets/dslr99.heic';
-import bgvideo from '../assets/bgvideo.mp4';
 
 
 const Home = () => {
-  const heroImages = [
-    "https://images.unsplash.com/photo-1583939411023-14783179e581?auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80",
-  ];
-
-
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -43,33 +20,100 @@ const Home = () => {
   const [scrollY, setScrollY] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
+  // API States
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [homeSection, setHomeSection] = useState<any>(null);
+  const [videoData, setVideoData] = useState<any>(null);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [carouselImages, setCarouselImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const parallaxRef = useRef(null);
   const videoSectionRef = useRef(null);
   const playerRef = useRef(null);
   const observer = useRef(null);
   const scrollRevealSections = useRef([]);
 
+  // API Fetch Effect
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch hero slides
+        const slides = await getHeroSlides();
+        if (slides?.length > 0) {
+          const slideImages = slides.map((slide: any) => 
+            slide.featured_media_url || ""
+          );
+          setHeroImages(slideImages);
+        }
 
-  const testimonials = [
-    {
-      id: 1,
-      couple: "LAVANYA & ESHAN",
-      image: dslr9,
-      quote: "Having The Treasured Tales photograph our wedding felt like having a dear friend who was dedicated to capturing the most precious moments of our life. Each photograph was taken thoughtfully, to express the essence of that moment and from a point of view, the pov of an insider who went on the emotional rollercoaster with us."
-    },
-    {
-      id: 2,
-      couple: "RAHUL & SANJANA",
-      image: dslr10,
-      quote: "We cannot thank The Treasured Tales enough for the beautiful memories they captured on our special day. Their attention to detail and ability to catch those candid moments made our wedding album truly special. The way they directed us felt so natural, we almost forgot we were being photographed!"
-    },
-    {
-      id: 3,
-      couple: "GAUTHAM & MEGHANA",
-      image: dslr99,
-      quote: "Working with The Treasured Tales team was the best decision we made for our wedding. They have this incredible talent for finding beauty in small moments - a glance, a smile, a tear. Their images tell our love story better than words ever could. We'll cherish these photographs for generations to come."
-    }
-  ];
+        // Fetch home static section
+        const section = await getHomeStaticSection();
+        if (section?.acf) {
+          setHomeSection(section.acf);
+        }
+
+        // Fetch video data
+        const video = await getHomeVideo();
+        if (video?.acf) {
+          setVideoData(video.acf);
+        }
+
+        // Fetch testimonials
+        try {
+          const testimonialsList = await getTestimonials();
+          console.log("Testimonials fetched:", testimonialsList);
+          if (testimonialsList?.length > 0) {
+            setTestimonials(testimonialsList);
+          }
+        } catch (error) {
+          console.error("Error fetching testimonials:", error);
+        }
+
+        // Fetch featured works for carousel
+        try {
+          const featuredWorks = await getFeaturedWorks();
+          if (featuredWorks?.length > 0) {
+            const carouselImagesList = featuredWorks.map((item: any) => 
+              item.featured_media_url || ""
+            );
+            setCarouselImages(carouselImagesList);
+          }
+        } catch (error) {
+          console.error("Error fetching featured works:", error);
+        }
+
+        // Fetch gallery posts for home (first 6)
+        try {
+          const galleries = await getGalleryPosts();
+          if (galleries?.length > 0) {
+            const mappedGalleries = galleries.slice(0, 6).map((item: any) => ({
+              id: item.id,
+              title: item.gallery_heading || item.title?.rendered || "Gallery",
+              date: item.gallery_date || new Date(item.date).toLocaleDateString(),
+              category: item.gallery_type || "WEDDING",
+              image: item.gallery_thumbnail_url || "",
+              link: `/gallery/${item.slug}`
+            }));
+            setGalleryItems(mappedGalleries);
+          }
+        } catch (error) {
+          console.error("Error fetching gallery posts:", error);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error in fetchData:", error);
+        setIsLoading(false);
+        // Keep defaults on error
+      }
+    };
+  
+    fetchData();
+  }, []);
 
   useEffect(() => {
     // Add touch-friendly class to body on mobile
@@ -85,6 +129,7 @@ const Home = () => {
 
   // Initialize Intersection Observer for scroll reveals
   useEffect(() => {
+    if (isLoading) return;
     // Options for the scroll reveal observer
     const options = {
       root: null, // Use the viewport as the root
@@ -121,10 +166,12 @@ const Home = () => {
         });
       }
     };
-  }, []);
+  }, [isLoading, testimonials]);
 
   // Handle hero section image rotation
   useEffect(() => {
+    if (heroImages.length === 0) return; // Don't set up interval if no images yet
+    
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -134,7 +181,7 @@ const Home = () => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [heroImages]);
 
   // Handle video playback and parallax effect
   useEffect(() => {
@@ -220,14 +267,6 @@ const Home = () => {
     }
   }, [location]);
 
-  const carouselImages = [
-    dslr7,
-    dslr3,
-    dslr2,
-    dslr5,
-    dslr20,
-    dslr1,
-  ];
 
   const openModal = (image) => {
     setSelectedImage(image);
@@ -243,56 +282,15 @@ const Home = () => {
     }, 300);
   };
 
-  const galleryItems = [
-    {
-      id: 1,
-      title: "Lavanya & Eshan",
-      date: "March 18, 2025",
-      category: "ENGAGEMENT",
-      image: dslr7,
-      link: "/gallery/lavanya-eshan-engagement"
-    },
-    {
-      id: 2,
-      title: "Rahul & Sanjana",
-      date: "April 5, 2023",
-      category: "WEDDING",
-      image: dslr4,
-      link: "/gallery/rahul-sanjana-wedding"
-    },
-    {
-      id: 3,
-      title: "Gauthum & Meghana",
-      date: "June 12, 2024",
-      category: "WEDDING",
-      image: dslr1,
-      link: "/gallery/gauthum-meghana-wedding"
-    },
-    {
-      id: 4,
-      title: "Lavanya & Eshan",
-      date: "February 24, 2025",
-      category: "ENGAGEMENT",
-      image: dslr20,
-      link: "/gallery/lavanya-eshan-engagement"
-    },
-    {
-      id: 5,
-      title: "Gauthum & Meghana",
-      date: "May 30, 2024",
-      category: "WEDDING",
-      image: dslr5,
-      link: "/gallery/gauthum-meghana-wedding"
-    },
-    {
-      id: 6,
-      title: "Rahul & Sanjana",
-      date: "August 17, 2024",
-      category: "ENGAGEMENT",
-      image: dslr2,
-      link: "/gallery/rahul-sanjana-engagement"
-    },
-  ];
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700">
+        <p className="font-cormorant text-3xl tracking-widest text-gray-700 animate-pulse">
+          LOADING
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden">
@@ -319,7 +317,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <div className="text-center text-white px-4 md:transform-none transform -translate-y-16">
             <h1 className="text-4xl sm:text-4xl md:text-6xl font-agraham mb-3 md:mb-6 tracking-widest leading-tight">Timeless tales of love</h1>
-            <h1 className="text-lg sm:text-xl md:text-3xl font-cormorant mb-4 md:mb-6">Crafted with intention, preserved with beauty.</h1>
+            <h1 className="text-lg sm:text-xl md:text-3xl font-cormorant mb-4 md:mb-6">Every frame, a story crafted with passion.</h1>
           </div>
         </div>
       </div>
@@ -330,25 +328,35 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div className="md:order-2">
               <img
-                src={dslr6}
-                alt="Modern Approach"
+                src={homeSection?.home_image || ""}
+                alt="Introduction Post"
                 className="w-full h-[250px] sm:h-[300px] md:h-[600px] object-cover"
               />
             </div>
             <div className="space-y-4 md:space-y-8 md:order-1">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-agraham font-light text-gray-800 leading-tight">
-                A MODERN APPROACH
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-agraham font-light text-gray-800 leading-tight">
+                {homeSection?.home_title || ""}
               </h2>
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-cormorant italic text-gray-700">
-                to an <span className="text-[#8C5117] font-semibold">age old tradition</span>
+              <h3 className="text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">
+                {homeSection?.home_subtext ? (
+                  <span className="text-[#8C5117]">{homeSection.home_subtext}</span>
+                ) : (
+                  ""
+                )}
               </h3>
               <div className="w-20 h-[1px] bg-black/30"></div>
               <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
-                At The Treasured Tales, we believe every wedding is a beautiful story waiting to be told. Our passion is to capture the real emotions, laughter, & tears of joy that make your day unique. We focus on the candid and heartfelt moments that truly matter, ensuring every memory is preserved.
+                {homeSection?.home_description ? (
+                  homeSection.home_description.split('\r\n')[0]
+                ) : (
+                  ""
+                )}
               </p>
-              <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
-                Let us turn your special day into a treasured tale you'll cherish forever, filled with memories that last a lifetime.
-              </p>
+              {homeSection?.home_description && homeSection.home_description.includes('\r\n') && (
+                <p className="text-black font-cormorant text-lg md:text-xl leading-relaxed">
+                  {homeSection.home_description.split('\r\n').slice(1).join('\n')}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -358,10 +366,10 @@ const Home = () => {
       <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="featured-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-4xl md:text-5xl font-agraham text-gray-800">Featured Work</h2>
+            <h2 className="text-4xl md:text-5xl font-agraham text-gray-800">Treasured Moments</h2>
             <div className="flex items-center justify-center my-4">
               <div className="hidden sm:block h-px w-16 bg-black/30"></div>
-              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">our favorite moments captured</p>
+              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">preserving the moments that matter most</p>
               <div className="hidden sm:block h-px w-16 bg-black/30"></div>
             </div>
           </div>
@@ -437,7 +445,7 @@ const Home = () => {
           <div className="absolute inset-0">
             <ReactPlayer
               ref={playerRef}
-              url={bgvideo}
+              url={videoData?.video_file || ""}
               playing={videoPlaying}
               loop
               muted
@@ -465,11 +473,11 @@ const Home = () => {
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4">
-          <h2 className="text-4xl md:text-6xl font-agraham mb-6 md:mb-8 tracking-wide">Frames of Forever</h2>
+          <h2 className="text-4xl md:text-6xl font-agraham mb-6 md:mb-8 tracking-wide">{videoData?.video_heading || ""}</h2>
           <div className="w-20 h-[1px] bg-white mb-6 md:mb-8"></div>
           <div className="max-w-3xl text-center">
             <p className="font-cormorant leading-relaxed text-lg md:text-2xl mb-8">
-              Every wedding is unique, and so are the films we create. We've redefined storytelling in the wedding world by capturing moments that are raw, emotional, and deeply personal. From diverse cultures to cherished traditions, each story we document on film is a heartfelt journey that continues to move and inspire us.
+              {videoData?.video_description || ""}
             </p>
           </div>
         </div>
@@ -513,7 +521,7 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl font-agraham text-gray-800">Gallery</h2>
             <div className="flex items-center justify-center my-4">
               <div className="hidden sm:block h-px w-16 bg-black/30"></div>
-              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">a selection of wedding and engagement galleries</p>
+              <p className="mx-2 sm:mx-4 text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">a curated collection of wedding & engagement stories</p>
               <div className="hidden sm:block h-px w-16 bg-black/30"></div>
             </div>
           </div>
@@ -557,7 +565,8 @@ const Home = () => {
       </div>
 
       {/* TESTIMONIAL */}
-      <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
+      {testimonials.length > 0 && (
+      <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="testimonials-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center text-center">
             <h2 className="text-5xl md:text-7xl font-agraham text-gray-800">TESTIMONIALS</h2>
@@ -573,7 +582,7 @@ const Home = () => {
                 <button
                   key={testimonial.id}
                   onClick={() => setActiveTestimonial(index)}
-                  className={`py-2 md:py-3 px-3 md:px-4 border-b-2 transition-all duration-300 font-cormorant text-sm md:text-base ${activeTestimonial === index
+                  className={`py-2 md:py-3 px-3 md:px-4 border-b-2 transition-all duration-300 font-cormorant text-transform: uppercase text-sm md:text-base ${activeTestimonial === index
                     ? 'border-[#8C5117] text-[#8C5117] font-bold'
                     : 'border-transparent text-gray-500 hover:text-[#8C5117] hover:border-[#8C5117]/30'
                     }`}
@@ -584,18 +593,19 @@ const Home = () => {
             </div>
 
             {/* Testimonial Content - Adjusted height for mobile */}
+            {testimonials[activeTestimonial] && (
             <div className="max-w-4xl mx-auto w-full">
               <div className="w-full h-[250px] sm:h-[300px] md:h-[650px] overflow-hidden relative mb-4 sm:mb-6 md:mb-10 testimonial-image">
                 <div className="relative w-full h-full transition-opacity duration-500">
                   <img
-                    src={testimonials[activeTestimonial].image}
-                    alt={testimonials[activeTestimonial].couple}
+                    src={testimonials[activeTestimonial]?.image}
+                    alt={testimonials[activeTestimonial]?.couple}
                     className="w-full h-full object-cover"
                   />
                   {/* Overlay with couple name in bottom left - smaller text on mobile */}
                   <div className="absolute inset-0 bg-black/30">
                     <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8">
-                      <h3 className="text-2xl md:text-4xl font-agraham text-white">{testimonials[activeTestimonial].couple}</h3>
+                      <h3 className="text-2xl md:text-4xl font-agraham text-white">{testimonials[activeTestimonial]?.couple}</h3>
                     </div>
                   </div>
                 </div>
@@ -604,11 +614,12 @@ const Home = () => {
               {/* Quote Below Image - Smaller text on mobile */}
               <div className="flex flex-col items-center justify-center text-center space-y-4 md:space-y-8 p-4 testimonial-quote">
                 <div className="w-20 md:w-32 h-[1px] bg-black/30"></div>
-                <p className="font-cormorant text-lg md:text-2xl italic leading-relaxed max-w-3xl mx-auto">
-                  "{testimonials[activeTestimonial].quote}"
+                <p className="font-cormorant text-lg md:text-2xl italic leading-relaxed max-w-4xl mx-auto">
+                  "{testimonials[activeTestimonial]?.quote}"
                 </p>
               </div>
             </div>
+            )}
 
             <div className="mt-6 md:mt-8">
               <Link
@@ -621,6 +632,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* About Section with Scroll Reveal */}
       <div className="py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="about-section">

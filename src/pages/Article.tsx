@@ -1,45 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Helmet } from "react-helmet";
+import { getGalleryPostBySlug } from '../services/wpApi';
 
-// Images
-import dslr1 from '../assets/dslr(1).heic';
-import dslr2 from '../assets/dslr(2).heic';
-import dslr3 from '../assets/dslr(3).heic';
-import dslr4 from '../assets/dslr(4).heic';
-import dslr5 from '../assets/dslr(5).heic';
-import dslr6 from '../assets/dslr(6).heic';
-import dslr7 from '../assets/dslr(7).heic';
-import dslr8 from '../assets/dslr(8).jpg';
-import dslr9 from '../assets/dslr(9).jpg';
-import dslr10 from '../assets/dslr(10).jpg';
-import dslr13 from '../assets/dslr13.jpg';
-import dslr14 from '../assets/dslr14.jpg';
-import dslr15 from '../assets/dslr15.jpg';
-import dslr16 from '../assets/dslr16.jpg';
-import dslr20 from '../assets/dslr20.jpg';
-import dslr99 from '../assets/dslr99.heic';
-import hero from '../assets/hero.heic';
+interface GalleryPost {
+  gallery_heading?: string;
+  gallery_subheading?: string;
+  gallery_type?: string;
+  gallery_date?: string;
+  gallery_images?: Array<{ url: string; full_url: string }>;
+  gallery_landing_url?: string;
+  slug?: string;
+}
 
 export default function Article({
-  images = [],
-  title: defaultTitle = "Gauthum & Meghana",
-  subtitle: defaultSubtitle = "Dancing to the rhythm of love, surrounded by those who matter most. Gautham & Meghana's Sangeet was a night to remember.",
+  title: defaultTitle = "Gallery",
+  subtitle: defaultSubtitle = "A moment captured in time.",
   category: defaultCategory = "Wedding",
-  date: defaultDate = "12/06/24"
+  date: defaultDate = ""
 }) {
   const location = useLocation();
+  const scrollRevealSections = useRef<Element[]>([]);
+  const [galleryData, setGalleryData] = useState<GalleryPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalFading, setModalFading] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
-  const scrollRevealSections = useRef([]);
   const [isMobile, setIsMobile] = useState(false);
   const galleryRef = useRef(null);
-
-  const title = location.state?.title || defaultTitle;
-  const subtitle = location.state?.subtitle || defaultSubtitle;
-  const category = location.state?.category || defaultCategory;
-  const date = location.state?.date || defaultDate;
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -50,65 +39,61 @@ export default function Article({
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
+  // Extract slug from the pathname (format: /gallery/:slug)
+  const slug = location.pathname.split('/').pop() || "";
+
+  // Get title, subtitle, category, and date from gallery data or location state or defaults
+  const title = galleryData?.gallery_heading || location.state?.title || defaultTitle;
+  const subtitle = galleryData?.gallery_subheading || location.state?.subtitle || defaultSubtitle;
+  const category = galleryData?.gallery_type || location.state?.category || defaultCategory;
+  const date = galleryData?.gallery_date || location.state?.date || defaultDate;
+
+  // Use gallery landing image from API, or empty string as fallback
+  const heroImage = galleryData?.gallery_landing_url || "";
+
+  // Use gallery images from API, or empty array as fallback
+  const galleryImages = galleryData?.gallery_images && galleryData.gallery_images.length > 0 
+    ? galleryData.gallery_images.map((img: any) => img.full_url || img.url)
+    : [];
+
+  // Fetch gallery data on mount
   useEffect(() => {
-    // Store original elements for restoration if needed
-    const revealElements = [];
-    
-    const options = {
-      root: null,
-      rootMargin: '0px 0px -50px 0px',
-      threshold: 0.05
-    };
-
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          requestAnimationFrame(() => {
-            entry.target.classList.add('revealed');
-          });
-          revealObserver.unobserve(entry.target);
+    const fetchGallery = async () => {
+      try {
+        setLoading(true);
+        const data = await getGalleryPostBySlug(slug);
+        if (data) {
+          setGalleryData(data);
+        } else {
+          setError("Gallery not found");
         }
-      });
-    }, options);
-
-    // Immediately reveal all elements if we're returning from a modal
-    if (sessionStorage.getItem('modalWasOpened') === 'true') {
-      document.querySelectorAll('.scroll-reveal').forEach(section => {
-        section.classList.add('revealed');
-        section.style.opacity = '1';
-        section.style.transform = 'translateY(0)';
-      });
-      sessionStorage.removeItem('modalWasOpened');
-    } else {
-      const sections = document.querySelectorAll('.scroll-reveal');
-      sections.forEach(section => {
-        revealObserver.observe(section);
-        revealElements.push(section);
-      });
-    }
-    
-    // Update ref for cleanup
-    scrollRevealSections.current = revealElements;
-
-    return () => {
-      scrollRevealSections.current.forEach(section => {
-        if (section) revealObserver.unobserve(section);
-      });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch gallery");
+      } finally {
+        setLoading(false);
+      }
     };
-  }, []);
 
-  const fallbackImages = [
-    dslr1, dslr2, dslr3, dslr4, dslr5, dslr6, dslr7,
-    dslr8, dslr9, dslr10, dslr13, dslr14, dslr15,
-    dslr16, dslr20, dslr99
-  ];
+    if (slug) {
+      fetchGallery();
+    }
+  }, [slug]);
 
-  const galleryImages = images.length > 0 ? images : fallbackImages;
-
-  const openModal = (image) => {
+  const openModal = (image: string) => {
     setSelectedImage(image);
     setModalOpen(true);
     setModalFading(false);
+  };
+
+  // Format date as DD/MM/YY
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: '2-digit' 
+    });
   };
 
   const closeModal = () => {
@@ -118,16 +103,17 @@ export default function Article({
       setModalFading(false);
       
       // Force all scroll-reveal elements to be visible regardless of their current state
-      document.querySelectorAll('.scroll-reveal').forEach(element => {
-        element.classList.add('revealed');
-        element.style.opacity = '1';
-        element.style.transform = 'translateY(0)';
+      document.querySelectorAll('.scroll-reveal').forEach((element) => {
+        const el = element as HTMLElement;
+        el.classList.add('revealed');
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
       });
     }, 300);
   };
 
   useEffect(() => {
-    const handleEscKey = (e) => {
+    const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeModal();
     };
 
@@ -146,7 +132,45 @@ export default function Article({
     };
   }, [modalOpen]);
 
-  const ImageWithHover = ({ src, alt = "Gallery image", delay = 0, isMobile }) => {
+  // Initialize Intersection Observer for scroll reveals
+  useEffect(() => {
+    // Options for the scroll reveal observer
+    const options = {
+      root: null,
+      rootMargin: '0px 0px -100px 0px',
+      threshold: 0.15
+    };
+
+    // Create an intersection observer for smooth reveal animations
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          requestAnimationFrame(() => {
+            entry.target.classList.add('revealed');
+          });
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, options);
+
+    // Select all elements with the scroll-reveal class
+    const sections = document.querySelectorAll('.scroll-reveal');
+    sections.forEach(section => {
+      revealObserver.observe(section);
+      scrollRevealSections.current.push(section);
+    });
+
+    return () => {
+      // Clean up the observer on component unmount
+      if (scrollRevealSections.current.length > 0) {
+        scrollRevealSections.current.forEach(section => {
+          revealObserver.unobserve(section);
+        });
+      }
+    };
+  }, [galleryData]);
+
+  const ImageWithHover = ({ src, alt = "Gallery image", delay = 0, isMobile }: { src: string; alt?: string; delay?: number; isMobile: boolean }) => {
     // Check if modal was previously opened to prevent animation delay
     const wasModalOpened = sessionStorage.getItem('modalWasOpened') === 'true';
     
@@ -172,13 +196,13 @@ export default function Article({
   };
 
   const renderGalleryGrid = () => {
-    if (galleryImages.length === 0) return null;
+    if (galleryImages.length === 0 || !heroImage) return null;
 
-    const heroImage = (
+    const heroSection = (
       <div className="w-full mb-4 relative scroll-reveal opacity-0 transition-all duration-500 ease-out transform translate-y-4">
-        <img src={hero} alt="Gallery hero" className="w-full h-auto object-cover" />
+        <img src={heroImage} alt="Gallery hero" className="w-full h-auto object-cover" />
         <div className="absolute inset-0 flex flex-col bg-black bg-opacity-10 text-white px-4 sm:px-8 md:px-16 lg:px-20 py-12 sm:py-16 md:py-20 lg:py-28 justify-center">
-          <h1 className="text-[10px] sm:text-base md:text-lg font-cormorant mb-2 md:mb-4 [letter-spacing:0.2em] md:[letter-spacing:0.3em] uppercase">{category} - <span className="font-agraham">{date}</span></h1>
+          <h1 className="text-[10px] sm:text-base md:text-lg font-cormorant mb-2 md:mb-4 [letter-spacing:0.2em] md:[letter-spacing:0.3em] uppercase">{category} - <span className="font-agraham">{formatDate(date)}</span></h1>
           <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-6xl font-agraham mb-3 sm:mb-4 md:mb-6 uppercase">{title}</h1>
           <div className="w-10 md:w-15 lg:w-20 h-[1px] bg-white mb-4 lg:mb-6"></div>
           <p className="text-xs lg:text-xl max-w-[70%] sm:max-w-full md:max-w-xl font-cormorant">{subtitle}</p>
@@ -186,7 +210,7 @@ export default function Article({
       </div>
     );
 
-    if (galleryImages.length === 1) return heroImage;
+    if (galleryImages.length === 1) return heroSection;
 
     const imageGrid = [];
 
@@ -230,7 +254,7 @@ export default function Article({
 
     return (
       <>
-        {heroImage}
+        {heroSection}
         {imageGrid}
       </>
     );
@@ -257,12 +281,28 @@ export default function Article({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Helmet>
 
-      <div 
-        ref={galleryRef}
-        className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-2 py-6 sm:py-8 md:py-10"
-      >
-        {renderGalleryGrid()}
-      </div>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-40">
+          <div className="text-center">
+            <p className="text-xl sm:text-2xl md:text-3xl font-agraham text-gray-400 mb-4 tracking-wider animate-pulse">Loading</p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-20 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div 
+          ref={galleryRef}
+          className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-2 py-6 sm:py-8 md:py-10"
+        >
+          {renderGalleryGrid()}
+        </div>
+      )}
 
       {modalOpen && (
         <div
@@ -290,7 +330,7 @@ export default function Article({
         </div>
       )}
 
-      <style jsx="true">{`
+      <style>{`
         .scroll-reveal {
           will-change: transform, opacity;
         }

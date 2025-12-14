@@ -68,19 +68,15 @@ const Contact = () => {
     setError(null);
     
     try {
-      // Simulate an API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // This would be replaced with your actual API call
-      // const response = await fetch('/api/contact', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(formState),
-      // });
-      
-      // if (!response.ok) throw new Error('Failed to send message');
+      const response = await fetch('https://sandybrown-tiger-324612.hostingersite.com/wp-json/custom/v1/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formState),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
       
       setIsSubmitted(true);
       

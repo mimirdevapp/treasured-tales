@@ -112,8 +112,9 @@ function Navbar() {
           <div className="flex justify-center items-center pb-6 text-sm italic uppercase space-x-10 py-5">
             {/* Left Nav */}
             <div className="flex space-x-20">
+              <Link to="/" className="nav-link font-cormorant hover:opacity-75">Home</Link>
               <Link to="/gallery" className="nav-link font-cormorant hover:opacity-75">Gallery</Link>
-              <Link to="/#featured-section" className="nav-link font-cormorant hover:opacity-75">Featured</Link>
+              <Link to="/#featured-section" className="nav-link font-cormorant hover:opacity-75">Treasured Moments</Link>
             </div>
 
             <div className="px-16">
@@ -128,6 +129,7 @@ function Navbar() {
 
             {/* Right Nav */}
             <div className="flex space-x-20">
+              <Link to="/#testimonials-section" className="nav-link font-cormorant hover:opacity-75">Testimonials</Link>
               <Link to="/#about-section" className="nav-link font-cormorant hover:opacity-75">About</Link>
               <Link to="/contact" className="nav-link font-cormorant hover:opacity-75">Contact</Link>
             </div>
@@ -160,6 +162,13 @@ function Navbar() {
 
             <div className="flex flex-col space-y-8">
               <Link
+                to="/"
+                className="text-black text-2xl font-cormorant hover:text-gray-600 transition-colors text-center"
+                onClick={closeMenu}
+              >
+                Home
+              </Link>
+              <Link
                 to="/gallery"
                 className="text-black text-2xl font-cormorant hover:text-gray-600 transition-colors text-center"
                 onClick={closeMenu}
@@ -172,6 +181,13 @@ function Navbar() {
                 onClick={closeMenu}
               >
                 Featured
+              </Link>
+              <Link
+                to="/#testimonials-section"
+                className="text-black text-2xl font-cormorant hover:text-gray-600 transition-colors text-center"
+                onClick={closeMenu}
+              >
+                Testimonials
               </Link>
               <Link
                 to="/#about-section"
