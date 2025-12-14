@@ -11,22 +11,9 @@ import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-white flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/gallery/:id" element={<Article />} />
-          </Routes>
-        </main>
-        <WhatsAppButton />
-        <Footer />
-      </div>
-    </Router>
+    <div style={{ padding: 40, color: "black", fontSize: 24 }}>
+      APP SHELL RENDERED
+    </div>
   );
 }
 
