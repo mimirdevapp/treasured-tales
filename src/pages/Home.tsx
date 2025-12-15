@@ -244,13 +244,24 @@ const Home = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.hash) {
-      const target = document.querySelector(location.hash);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  }, [location]);
+    if (isLoading) return;
+    if (!location.hash) return;
+
+    const id = location.hash.replace('#', '');
+
+    // wait for DOM + layout + images
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+      });
+    });
+  }, [isLoading, location.hash]);
 
 
   const openModal = (image) => {
