@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Helmet } from "react-helmet";
-import ReactPlayer from 'react-player/lazy'; // Import ReactPlayer with lazy loading
 import { motion } from 'framer-motion';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import '@splidejs/splide/dist/css/splide.min.css';
 import { ArrowRight } from 'lucide-react';
-import { getHeroSlides, getHomeStaticSection, getHomeVideo, getFeaturedWorks, getTestimonials, getGalleryPosts } from '../services/wpApi';
+import { getHeroSlides, getIntroductionSection, getHomeVideo, getFeaturedWorks, getTestimonials, getGalleryPosts } from '../services/wpApi';
+import ReactPlayer from 'react-player/lazy'; // Import ReactPlayer with lazy loading
 import adi from '../assets/aadithya.jpg'
-
+import decode from '../utils/htmlDecode';
 
 const Home = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalFading, setModalFading] = useState(false);
@@ -50,8 +50,8 @@ const Home = () => {
           setHeroImages(slideImages);
         }
 
-        // Fetch home static section
-        const section = await getHomeStaticSection();
+        // Fetch introduction section
+        const section = await getIntroductionSection();
         if (section?.acf) {
           setHomeSection(section.acf);
         }
@@ -130,28 +130,24 @@ const Home = () => {
   // Initialize Intersection Observer for scroll reveals
   useEffect(() => {
     if (isLoading) return;
-    // Options for the scroll reveal observer
     const options = {
-      root: null, // Use the viewport as the root
-      rootMargin: '0px 0px -100px 0px', // Trigger a bit before elements come into view
-      threshold: 0.15 // Trigger when 15% of the element is visible
+      root: null,
+      rootMargin: '0px 0px -100px 0px', 
+      threshold: 0.15
     };
 
     // Create an intersection observer for smooth reveal animations
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          // Use requestAnimationFrame for smoother animations
           requestAnimationFrame(() => {
             entry.target.classList.add('revealed');
           });
-          // Once revealed, we don't need to observe it anymore
           revealObserver.unobserve(entry.target);
         }
       });
     }, options);
 
-    // Select all elements with the scroll-reveal class
     const sections = document.querySelectorAll('.scroll-reveal');
     sections.forEach(section => {
       revealObserver.observe(section);
@@ -170,7 +166,7 @@ const Home = () => {
 
   // Handle hero section image rotation
   useEffect(() => {
-    if (heroImages.length === 0) return; // Don't set up interval if no images yet
+    if (heroImages.length === 0) return;
     
     const interval = setInterval(() => {
       setIsTransitioning(true);
@@ -183,61 +179,50 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [heroImages]);
 
-  // Handle video playback and parallax effect
-  useEffect(() => {
-    // Intersection Observer for video section
-    observer.current = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      if (entry.isIntersecting && playerRef.current) {
-        setVideoPlaying(true);
-      } else if (playerRef.current && videoPlaying) {
-        setVideoPlaying(false);
+    // Handle video playback and parallax effect
+    useEffect(() => {
+      observer.current = new IntersectionObserver(
+        ([entry]) => {
+          setVideoPlaying(entry.isIntersecting);
+        },
+        { threshold: 0.3 }
+      );
+
+      if (videoSectionRef.current) {
+        observer.current.observe(videoSectionRef.current);
       }
-    }, { threshold: 0.5 });
 
-    if (videoSectionRef.current) {
-      observer.current.observe(videoSectionRef.current);
-    }
+      let ticking = false;
+      const handleScroll = () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            setScrollY(window.scrollY);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
 
-    // Throttled scroll handler for performance
-    let ticking = false;
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
 
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrollY(window.scrollY);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+      window.addEventListener('keydown', handleEscKey);
+      document.body.style.overflow = modalOpen ? 'hidden' : '';
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('keydown', handleEscKey);
 
-    // Close modal on escape key press
-    const handleEscKey = (e) => {
-      if (e.key === 'Escape') {
-        closeModal();
-      }
-    };
+        if (observer.current && videoSectionRef.current) {
+          observer.current.unobserve(videoSectionRef.current);
+        }
+      };
+    }, [modalOpen]);
 
-    window.addEventListener('keydown', handleEscKey);
-
-    // Prevent scrolling when modal is open
-    if (modalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('keydown', handleEscKey);
-      if (observer.current && videoSectionRef.current) {
-        observer.current.unobserve(videoSectionRef.current);
-      }
-    };
-  }, [videoPlaying, modalOpen]);
 
   // Apply parallax effect when scroll position changes
   useEffect(() => {
@@ -297,7 +282,7 @@ const Home = () => {
       <Helmet>
         <title>Home | The Treasured Tales</title>
       </Helmet>
-      {/* Hero Section with Parallax */}
+      {/* Hero Section */}
       <div className="relative h-screen overflow-hidden">
         <div ref={parallaxRef} className="absolute inset-0 h-[120%] top-0 will-change-transform">
           {heroImages.map((image, index) => (
@@ -322,7 +307,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/*  Modern Approach */}
+      {/*  Introduction Section */}
       <div className="py-12 sm:py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
@@ -362,7 +347,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Enhanced Carousel Section with Scroll Reveal */}
+      {/* Treasured Moments */}
       <div className="py-16 md:py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="featured-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-12">
@@ -374,7 +359,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Updated Splide options for mobile */}
           <Splide
             options={{
               type: 'loop',
@@ -418,7 +402,6 @@ const Home = () => {
                   className="relative group cursor-pointer overflow-hidden"
                   onClick={() => openModal(image)}
                 >
-                  {/* Fixed height container with proper aspect ratio */}
                   <div className="aspect-w-3 aspect-h-4 relative" style={{ maxHeight: '450px' }}>
                     <img
                       src={image}
@@ -439,9 +422,7 @@ const Home = () => {
 
       {/* Video Section */}
       <div ref={videoSectionRef} className="relative h-[80vh] md:h-screen w-full overflow-hidden scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
-        {/* Background - Video Container (always visible) */}
         <div className="absolute inset-0">
-          {/* ReactPlayer Container - Always visible */}
           <div className="absolute inset-0">
             <ReactPlayer
               ref={playerRef}
@@ -452,10 +433,12 @@ const Home = () => {
               playsinline
               width="100%"
               height="100%"
-              style={{ objectFit: 'cover' }}
               config={{
                 file: {
                   attributes: {
+                    muted: true,
+                    playsInline: true,
+                    autoPlay: true,
                     style: {
                       width: '100%',
                       height: '100%',
@@ -466,12 +449,9 @@ const Home = () => {
               }}
             />
           </div>
-
-          {/* Dark Overlay */}
           <div className="absolute inset-0 bg-black/40"></div>
         </div>
 
-        {/* Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4">
           <h2 className="text-4xl md:text-6xl font-agraham mb-6 md:mb-8 tracking-wide">{videoData?.video_heading || ""}</h2>
           <div className="w-20 h-[1px] bg-white mb-6 md:mb-8"></div>
@@ -483,38 +463,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* EMOTION OVER EVERYTHING SECTION - NEW */}
-      {/* <div className="py-24 bg-[#f8f4f0] scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-              <img
-                src={dslr8}
-                alt="Couple on beach"
-                className="w-full h-[600px] object-cover"
-              />
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-6xl font-agraham font-light text-gray-800">
-                EMOTION
-              </h2>
-              <h3 className="text-3xl font-cormorant italic text-gray-700">
-                over <span className="text-[#8C5117] font-semibold">everything</span>
-              </h3>
-              <div className="w-20 h-[1px] bg-black/30"></div>
-              <p className="text-black font-cormorant text-xl leading-relaxed">
-                Through a candid artistic approach, and a touch of creative, cinematic
-                direction, we are able to document the day as it truly was and as it truly
-                felt. Your wedding album won't just reflect timestamps from a timeline or
-                forced poses throughout the day, but rather your memories brought to life
-                through art.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* GALLERY SECTION - NEW */}
+      {/* GALLERY SECTION */}
       <div className="py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-12">
@@ -576,7 +525,6 @@ const Home = () => {
               <div className="hidden sm:block h-px w-16 bg-black/30"></div>
             </div>
 
-            {/* Testimonial Navigation - More compact on mobile */}
             <div className="flex flex-wrap justify-center gap-2 md:space-x-8 mb-8 md:mb-12">
               {testimonials.map((testimonial, index) => (
                 <button
@@ -592,7 +540,6 @@ const Home = () => {
               ))}
             </div>
 
-            {/* Testimonial Content - Adjusted height for mobile */}
             {testimonials[activeTestimonial] && (
             <div className="max-w-4xl mx-auto w-full">
               <div className="w-full h-[250px] sm:h-[300px] md:h-[650px] overflow-hidden relative mb-4 sm:mb-6 md:mb-10 testimonial-image">
@@ -602,7 +549,6 @@ const Home = () => {
                     alt={testimonials[activeTestimonial]?.couple}
                     className="w-full h-full object-cover"
                   />
-                  {/* Overlay with couple name in bottom left - smaller text on mobile */}
                   <div className="absolute inset-0 bg-black/30">
                     <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8">
                       <h3 className="text-2xl md:text-4xl font-agraham text-white">{testimonials[activeTestimonial]?.couple}</h3>
@@ -611,11 +557,10 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Quote Below Image - Smaller text on mobile */}
               <div className="flex flex-col items-center justify-center text-center space-y-4 md:space-y-8 p-4 testimonial-quote">
                 <div className="w-20 md:w-32 h-[1px] bg-black/30"></div>
                 <p className="font-cormorant text-lg md:text-2xl italic leading-relaxed max-w-4xl mx-auto">
-                  "{testimonials[activeTestimonial]?.quote}"
+                  "{decode(testimonials[activeTestimonial]?.quote)}"
                 </p>
               </div>
             </div>
@@ -634,7 +579,7 @@ const Home = () => {
       </div>
       )}
 
-      {/* About Section with Scroll Reveal */}
+      {/* About Section */}
       <div className="py-16 md:py-24 bg-white scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8" id="about-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
@@ -662,11 +607,10 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal with Fade Effect */}
+      {/* Lightbox Modal */}
       {modalOpen && (
         <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 ${modalFading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
           <div className="relative w-full h-full max-w-6xl max-h-[90vh] mx-auto p-2 md:p-8 flex items-center justify-center">
-            {/* Close button - larger touch target on mobile */}
             <button
               onClick={closeModal}
               className="absolute top-2 right-2 md:top-6 md:right-6 z-10 bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors rounded-full p-4 md:p-3 touch-manipulation"
@@ -675,8 +619,6 @@ const Home = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-
-            {/* Image container */}
             <div className={`w-full h-full flex items-center justify-center ${modalFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} transition-all duration-300`}>
               <img
                 src={selectedImage}
@@ -688,8 +630,8 @@ const Home = () => {
         </div>
       )}
 
-      {/* CSS for scroll animations and carousel */}
-      <style jsx="true">{`
+      <style jsx="true"> 
+      {`
         /* Add will-change to optimize animations */
         .scroll-reveal {
           will-change: transform, opacity;
@@ -697,21 +639,21 @@ const Home = () => {
         
         /* Custom aspect ratio support */
         .aspect-w-3 {
-  position: relative;
-  padding-bottom: calc(4 / 3 * 100%);
-}
+          position: relative;
+          padding-bottom: calc(4 / 3 * 100%);
+        }
 
-.aspect-w-3 > img {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  object-fit: cover;
-  object-position: center;
-}
+        .aspect-w-3 > img {
+          position: absolute;
+          height: 100%;
+          width: 100%;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          object-fit: cover;
+          object-position: center;
+        }
 
         /* Gradually reveal sections with better easing function */
         .scroll-reveal.revealed {
@@ -760,49 +702,49 @@ const Home = () => {
         @media (prefers-reduced-motion: reduce) {
           .scroll-reveal {
             transition: none !important;
-          }
+        }
           
           .scroll-reveal.revealed {
             opacity: 1 !important;
             transform: none !important;
           }
-          
         }
 
-      /* Mobile optimization */
-  @media (max-width: 640px) {
-  /* Remove the padding-bottom change to aspect-w-3 */
-.aspect-w-3 {
-    padding-bottom: calc(4 / 3 * 100%) !important; 
-  }
-  .portfolio-splide {
-    padding-bottom: 0;
-  }
-      .parallax-disabled {
-    transform: none !important;
-  }
+        /* Mobile optimization */
+          @media (max-width: 640px) {
+          /* Remove the padding-bottom change to aspect-w-3 */
+        .aspect-w-3 {
+            padding-bottom: calc(4 / 3 * 100%) !important; 
+          }
+          .portfolio-splide {
+            padding-bottom: 0;
+          }
+              .parallax-disabled {
+            transform: none !important;
+          }
 
-  .scroll-reveal {
-    transition-duration: 800ms;
-  }
+          .scroll-reveal {
+            transition-duration: 800ms;
+        }
 
   
-  /* Better video handling on mobile */
-  .video-section {
-    height: 70vh; /* Shorter on mobile */
-  }
-  }
-  
-  /* Improve touch targets on mobile */
-  @media (max-width: 768px) {
-    .portfolio-splide .splide__slide {
-      touch-action: pan-y;
-    }
-    
-    /* Make buttons more tappable */
+        /* Better video handling on mobile */
+        .video-section {
+          height: 70vh; /* Shorter on mobile */
+        }
+      }
+      
+      /* Improve touch targets on mobile */
+      @media (max-width: 768px) {
+        .portfolio-splide .splide__slide {
+          touch-action: pan-y;
+        }
+        
+        /* Make buttons more tappable */
 
-  }
-`}</style>
+      }
+    `}
+      </style>
     </div>
   );
 };

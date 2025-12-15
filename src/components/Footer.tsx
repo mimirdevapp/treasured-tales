@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Instagram, MapPin } from 'lucide-react';
 import Logo from '../assets/footerlogo.jpg'
 

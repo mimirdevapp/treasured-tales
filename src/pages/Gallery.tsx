@@ -8,7 +8,6 @@ const Gallery = () => {
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Format date as "Month Day, Year"
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -49,28 +48,23 @@ const Gallery = () => {
 
   // Initialize Intersection Observer for scroll reveals
   useEffect(() => {
-    // Options for the scroll reveal observer
     const options = {
-      root: null, // Use the viewport as the root
-      rootMargin: '0px 0px -100px 0px', // Trigger a bit before elements come into view
-      threshold: 0.15 // Trigger when 15% of the element is visible
+      root: null,
+      rootMargin: '0px 0px -100px 0px',
+      threshold: 0.15
     };
 
-    // Create an intersection observer for smooth reveal animations
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          // Use requestAnimationFrame for smoother animations
           requestAnimationFrame(() => {
             entry.target.classList.add('revealed');
           });
-          // Once revealed, we don't need to observe it anymore
           revealObserver.unobserve(entry.target);
         }
       });
     }, options);
 
-    // Select all elements with the scroll-reveal class
     const sections = document.querySelectorAll('.scroll-reveal');
     sections.forEach(section => {
       revealObserver.observe(section);
@@ -78,7 +72,6 @@ const Gallery = () => {
     });
 
     return () => {
-      // Clean up the observer on component unmount
       if (scrollRevealSections.current.length > 0) {
         scrollRevealSections.current.forEach(section => {
           revealObserver.unobserve(section);
@@ -139,7 +132,6 @@ const Gallery = () => {
         </>
       )}
 
-      {/* CSS for scroll animations */}
       <style jsx="true">{`
         /* Add will-change to optimize animations */
         .scroll-reveal {

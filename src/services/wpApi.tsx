@@ -23,7 +23,7 @@ export async function getHeroSlides() {
   return slideImages;
 }
 
-export async function getHomeStaticSection() {
+export async function getIntroductionSection() {
   const res = await fetch(`${WP_BASE}/first_section`);
   if (!res.ok) throw new Error("Failed to fetch static section");
   const data = await res.json();

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { getGalleryPostBySlug } from '../services/wpApi';
+import decode from '../utils/htmlDecode';
 
 interface GalleryPost {
   gallery_heading?: string;
@@ -102,7 +103,6 @@ export default function Article({
       setModalOpen(false);
       setModalFading(false);
       
-      // Force all scroll-reveal elements to be visible regardless of their current state
       document.querySelectorAll('.scroll-reveal').forEach((element) => {
         const el = element as HTMLElement;
         el.classList.add('revealed');
@@ -120,7 +120,6 @@ export default function Article({
     if (modalOpen) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleEscKey);
-      // Mark that a modal was opened for next render cycle
       sessionStorage.setItem('modalWasOpened', 'true');
     } else {
       document.body.style.overflow = '';
@@ -132,16 +131,13 @@ export default function Article({
     };
   }, [modalOpen]);
 
-  // Initialize Intersection Observer for scroll reveals
   useEffect(() => {
-    // Options for the scroll reveal observer
     const options = {
       root: null,
       rootMargin: '0px 0px -100px 0px',
       threshold: 0.15
     };
 
-    // Create an intersection observer for smooth reveal animations
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -153,7 +149,6 @@ export default function Article({
       });
     }, options);
 
-    // Select all elements with the scroll-reveal class
     const sections = document.querySelectorAll('.scroll-reveal');
     sections.forEach(section => {
       revealObserver.observe(section);
@@ -161,7 +156,6 @@ export default function Article({
     });
 
     return () => {
-      // Clean up the observer on component unmount
       if (scrollRevealSections.current.length > 0) {
         scrollRevealSections.current.forEach(section => {
           revealObserver.unobserve(section);
@@ -171,7 +165,6 @@ export default function Article({
   }, [galleryData]);
 
   const ImageWithHover = ({ src, alt = "Gallery image", delay = 0, isMobile }: { src: string; alt?: string; delay?: number; isMobile: boolean }) => {
-    // Check if modal was previously opened to prevent animation delay
     const wasModalOpened = sessionStorage.getItem('modalWasOpened') === 'true';
     
     return (
@@ -205,7 +198,7 @@ export default function Article({
           <h1 className="text-[10px] sm:text-base md:text-lg font-cormorant mb-2 md:mb-4 [letter-spacing:0.2em] md:[letter-spacing:0.3em] uppercase">{category} - <span className="font-agraham">{formatDate(date)}</span></h1>
           <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-6xl font-agraham mb-3 sm:mb-4 md:mb-6 uppercase">{title}</h1>
           <div className="w-10 md:w-15 lg:w-20 h-[1px] bg-white mb-4 lg:mb-6"></div>
-          <p className="text-xs lg:text-xl max-w-[70%] sm:max-w-full md:max-w-xl font-cormorant">{subtitle}</p>
+          <p className="text-xs lg:text-xl max-w-[70%] sm:max-w-full md:max-w-xl font-cormorant">{decode(subtitle)}</p>
         </div>
       </div>
     );
@@ -260,11 +253,9 @@ export default function Article({
     );
   };
 
-  // Check if we've had a modal interaction previously
   const wasModalOpened = typeof window !== 'undefined' && sessionStorage.getItem('modalWasOpened') === 'true';
   
   useEffect(() => {
-    // Apply class to body to ensure CSS rules can target it
     if (wasModalOpened) {
       document.body.classList.add('modal-was-open');
     }
