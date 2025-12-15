@@ -282,7 +282,7 @@ export default function Article({
 
       {error && (
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-20 text-center">
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600 text-2xl font-cormorant">{error}</p>
         </div>
       )}
 
