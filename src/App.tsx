@@ -8,7 +8,6 @@ import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 import Article from './pages/Article';
 import ScrollToTop from './components/ScrollToTop';
-import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -22,7 +21,6 @@ function App() {
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery/:id" element={<Article />} />
-            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <WhatsAppButton />
