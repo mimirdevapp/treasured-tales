@@ -324,7 +324,7 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div className="md:order-2">
               <img
-                src={homeSection?.home_image || ""}
+                src={homeSection?.home_image?.sizes?.large || ""}
                 alt="Introduction Post"
                 className="w-full h-[400px] sm:h-[500px] md:h-[600px] object-cover"
               />
