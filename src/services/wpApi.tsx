@@ -1,26 +1,21 @@
 export const WP_API_URL = import.meta.env.VITE_WP_BASE;
 const WP_BASE = `${WP_API_URL}/wp-json/wp/v2`;
 
+let heroSlidesCache: any[] | null = null;
+
 export async function getHeroSlides() {
-  const res = await fetch(`${WP_BASE}/slide_show`);
-  if (!res.ok) throw new Error("Failed to fetch hero slides");
+  if (heroSlidesCache) return heroSlidesCache;
+  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/slide-show`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch hero slides");
+  }
+
   const data = await res.json();
-  const slides = Array.isArray(data) ? data : [data];
-  
-  // Extract images from meta_box.slide_show array and return as flat array
-  const slideImages: any[] = [];
-  slides.forEach((slide: any) => {
-    const metaBox = slide.meta_box || {};
-    const images = Array.isArray(metaBox.slide_show) ? metaBox.slide_show : [];
-    
-    // Add each image as a slide object with featured_media_url
-    images.forEach((img: any) => {
-      slideImages.push({
-        featured_media_url: img.full_url || img.url || ""
-      });
-    });
-  });
-  
+  const slideImages = data.slides.map((slide: any) => ({
+    featured_media_url: slide.image_1536 || slide.image_full,
+  }));
+
+  heroSlidesCache = slideImages;
   return slideImages;
 }
 
@@ -53,7 +48,7 @@ export async function getFeaturedWorks() {
     // Add each image as a carousel item
     images.forEach((img: any) => {
       workImages.push({
-        featured_media_url: img.full_url || img.url || ""
+        featured_media_url: img?.sizes["1536x1536"].url || img.full_url || ""
       });
     });
   });
@@ -73,7 +68,6 @@ export async function getTestimonials() {
   testimonialsList.forEach((item: any, sectionIndex: number) => {
     const metaBox = item.meta_box || {};
 
-    // Find all testimonial numbers dynamically
     const testimonialNumbers = Object.keys(metaBox)
       .filter(key => key.startsWith("testimonial_title_"))
       .map(key => key.replace("testimonial_title_", ""));
@@ -83,7 +77,7 @@ export async function getTestimonials() {
       const quote = metaBox[`testimonial_description_${num}`] || "";
       const imageArr = metaBox[`testimonial_image_${num}`] || [];
       const imageObj = Array.isArray(imageArr) ? imageArr[0] : null;
-      const image = imageObj?.full_url || imageObj?.url || "";
+      const image = imageObj?.sizes["1536x1536"].url || imageObj?.full_url || "";
 
       if (couple && quote) {
         testimonials.push({
@@ -102,26 +96,19 @@ export async function getTestimonials() {
 /* ---------------- GALLERY POSTS ---------------- */
 
 export async function getGalleryPosts() {
-  const res = await fetch(`${WP_BASE}/gallery_posts`);
+  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/gallery_posts_list`);
   if (!res.ok) throw new Error("Failed to fetch gallery posts");
-  const data = await res.json();
-  const galleries = Array.isArray(data) ? data : [data];
+  const galleries = await res.json();
   
   // Map galleries with extracted data from meta_box
   const galleriesWithImages = galleries.map((gallery: any) => {
-    const metaBox = gallery.meta_box || {};
-    const thumbnail = Array.isArray(metaBox.gallery_thumbnail) ? metaBox.gallery_thumbnail[0] : null;
-    const landingImage = Array.isArray(metaBox.gallery_landing) ? metaBox.gallery_landing[0] : null;
     
     return {
       ...gallery,
-      gallery_heading: metaBox.gallery_heading || "",
-      gallery_subheading: metaBox.gallery_subheading || "",
-      gallery_type: metaBox.gallery_type || "Wedding",
-      gallery_date: metaBox.gallery_date || "",
-      gallery_thumbnail_url: thumbnail?.full_url || "",
-      gallery_landing_url: landingImage?.full_url || "",
-      gallery_images: metaBox.gallery_images || []
+      gallery_heading: gallery.gallery_heading || "",
+      gallery_type: gallery.gallery_type || "Wedding",
+      gallery_date: gallery.gallery_date || "",
+      gallery_thumbnail_url: gallery.gallery_thumbnail_url || "",
     };
   });
   
@@ -129,26 +116,19 @@ export async function getGalleryPosts() {
 }
 
 export async function getGalleryPostBySlug(slug: string) {
-  const res = await fetch(`${WP_BASE}/gallery_posts?slug=${slug}`);
+  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/gallery_posts?slug=${slug}`);
   if (!res.ok) throw new Error("Failed to fetch gallery post");
-  const data = await res.json();
-  const gallery = data[0]; // WP always returns array
-  
+  const gallery = await res.json();
   if (!gallery) return null;
-  
-  // Extract and map meta_box data like getGalleryPosts does
-  const metaBox = gallery.meta_box || {};
-  const thumbnail = Array.isArray(metaBox.gallery_thumbnail) ? metaBox.gallery_thumbnail[0] : null;
-  const landingImage = Array.isArray(metaBox.gallery_landing) ? metaBox.gallery_landing[0] : null;
   
   return {
     ...gallery,
-    gallery_heading: metaBox.gallery_heading || "",
-    gallery_subheading: metaBox.gallery_subheading || "",
-    gallery_type: metaBox.gallery_type || "Wedding",
-    gallery_date: metaBox.gallery_date || "",
-    gallery_thumbnail_url: thumbnail?.full_url || thumbnail?.url || "",
-    gallery_landing_url: landingImage?.full_url || landingImage?.url || "",
-    gallery_images: metaBox.gallery_images || []
+    gallery_heading: gallery.gallery_heading || "",
+    gallery_subheading: gallery.gallery_subheading || "",
+    gallery_type: gallery.gallery_type || "Wedding",
+    gallery_date: gallery.gallery_date || "",
+    gallery_landing_image: gallery?.gallery_landing_image[0] || "",
+    gallery_images: gallery?.gallery_images || []
   };
 }
+

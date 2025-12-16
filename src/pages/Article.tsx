@@ -9,8 +9,8 @@ interface GalleryPost {
   gallery_subheading?: string;
   gallery_type?: string;
   gallery_date?: string;
-  gallery_images?: Array<{ url: string; full_url: string }>;
-  gallery_landing_url?: string;
+  gallery_images?: Array<{ url: string; full_url: string, sizes: Array<any> }>;
+  gallery_landing_image?: string;
   slug?: string;
 }
 
@@ -44,9 +44,8 @@ export default function Article({
   const category = galleryData?.gallery_type || location.state?.category || defaultCategory;
   const dateValue = galleryData?.gallery_date || location.state?.date || defaultDate;
 
-  const heroImage = galleryData?.gallery_landing_url || "";
-  const galleryImages =
-    galleryData?.gallery_images?.map(img => img.full_url || img.url) || [];
+  const heroImage = galleryData?.gallery_landing_image || "";
+  const galleryImages = galleryData?.gallery_images;
 
   useEffect(() => {
     const fetchGallery = async () => {

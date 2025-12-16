@@ -20,14 +20,12 @@ const Home = () => {
   const [scrollY, setScrollY] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  // API States
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [homeSection, setHomeSection] = useState<any>(null);
   const [videoData, setVideoData] = useState<any>(null);
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [carouselImages, setCarouselImages] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const parallaxRef = useRef(null);
   const videoSectionRef = useRef(null);
@@ -35,88 +33,48 @@ const Home = () => {
   const observer = useRef(null);
   const scrollRevealSections = useRef([]);
 
-  // API Fetch Effect
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCritical = async () => {
       try {
-        setIsLoading(true);
-        
-        // Fetch hero slides
-        const slides = await getHeroSlides();
+
+        const [slides] = await Promise.all([
+          getHeroSlides(),
+        ]);
+
         if (slides?.length > 0) {
-          const slideImages = slides.map((slide: any) => 
-            slide.featured_media_url || ""
-          );
-          setHeroImages(slideImages);
+          setHeroImages(slides.map((s: any) => s.featured_media_url || ""));
         }
 
-        // Fetch introduction section
-        const section = await getIntroductionSection();
-        if (section?.acf) {
-          setHomeSection(section.acf);
-        }
-
-        // Fetch video data
-        const video = await getHomeVideo();
-        if (video?.acf) {
-          setVideoData(video.acf);
-        }
-
-        // Fetch testimonials
-        try {
-          const testimonialsList = await getTestimonials();
-          console.log("Testimonials fetched:", testimonialsList);
-          if (testimonialsList?.length > 0) {
-            setTestimonials(testimonialsList);
-          }
-        } catch (error) {
-          console.error("Error fetching testimonials:", error);
-        }
-
-        // Fetch featured works for carousel
-        try {
-          const featuredWorks = await getFeaturedWorks();
-          if (featuredWorks?.length > 0) {
-            const carouselImagesList = featuredWorks.map((item: any) => 
-              item.featured_media_url || ""
-            );
-            setCarouselImages(carouselImagesList);
-          }
-        } catch (error) {
-          console.error("Error fetching featured works:", error);
-        }
-
-        // Fetch gallery posts for home (first 6)
-        try {
-          const galleries = await getGalleryPosts();
-          if (galleries?.length > 0) {
-            const mappedGalleries = galleries.slice(0, 6).map((item: any) => ({
-              id: item.id,
-              title: item.gallery_heading || item.title?.rendered || "Gallery",
-              date: item.gallery_date || new Date(item.date).toLocaleDateString(),
-              category: item.gallery_type || "WEDDING",
-              image: item.gallery_thumbnail_url || "",
-              link: `/gallery/${item.slug}`
-            }));
-            setGalleryItems(mappedGalleries);
-          }
-        } catch (error) {
-          console.error("Error fetching gallery posts:", error);
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error in fetchData:", error);
-        setIsLoading(false);
-        // Keep defaults on error
+      } catch (e) {
+        console.error(e);
       }
     };
-  
-    fetchData();
+
+    fetchCritical();
   }, []);
 
   useEffect(() => {
-    // Add touch-friendly class to body on mobile
+    getIntroductionSection().then(section => section?.acf && setHomeSection(section.acf));
+    getHomeVideo().then(v => v?.acf && setVideoData(v.acf));
+    getTestimonials().then(t => t?.length && setTestimonials(t));
+    getFeaturedWorks().then(f =>
+      f?.length && setCarouselImages(f.map((i: any) => i.featured_media_url || ""))
+    );
+    getGalleryPosts().then(g =>
+      g?.length && setGalleryItems(
+        g.slice(0, 6).map((item: any) => ({
+          id: item.id,
+          title: item.gallery_heading || item.title?.rendered || "Gallery",
+          date: item.gallery_date || new Date(item.date).toLocaleDateString(),
+          category: item.gallery_type || "WEDDING",
+          image: item.gallery_thumbnail_url || "",
+          link: `/gallery/${item.slug}`
+        }))
+      )
+    );
+  }, []);
+
+  useEffect(() => {
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
       document.body.classList.add('is-mobile');
@@ -127,16 +85,13 @@ const Home = () => {
     };
   }, []);
 
-  // Initialize Intersection Observer for scroll reveals
   useEffect(() => {
-    if (isLoading) return;
     const options = {
       root: null,
       rootMargin: '0px 0px -100px 0px', 
       threshold: 0.15
     };
 
-    // Create an intersection observer for smooth reveal animations
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -162,7 +117,7 @@ const Home = () => {
         });
       }
     };
-  }, [isLoading, testimonials]);
+  }, [testimonials]);
 
   // Handle hero section image rotation
   useEffect(() => {
@@ -244,7 +199,6 @@ const Home = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (isLoading) return;
     if (!location.hash) return;
 
     const id = location.hash.replace('#', '');
@@ -261,7 +215,7 @@ const Home = () => {
         }
       });
     });
-  }, [isLoading, location.hash]);
+  }, [location.hash]);
 
 
   const openModal = (image) => {
@@ -278,20 +232,18 @@ const Home = () => {
     }, 300);
   };
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700">
-        <p className="font-cormorant text-3xl tracking-widest text-gray-700 animate-pulse">
-          LOADING
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="overflow-hidden">
       <Helmet>
         <title>Home | The Treasured Tales</title>
+        {heroImages[0] && (
+        <link
+          rel="preload"
+          as="image"
+          href={heroImages[0]}
+          fetchpriority="high"
+        />
+      )}
       </Helmet>
       {/* Hero Section */}
       <div className="relative h-screen overflow-hidden">
@@ -304,7 +256,9 @@ const Home = () => {
             >
               <img
                 src={image}
-                alt={`Hero ${index + 1}`}
+                loading={currentImageIndex === index ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={currentImageIndex === index ? "high" : "low"}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -325,7 +279,6 @@ const Home = () => {
             <div className="md:order-2">
               <img
                 src={homeSection?.home_image?.sizes?.large || ""}
-                alt="Introduction Post"
                 className="w-full h-[400px] sm:h-[500px] md:h-[600px] object-cover"
               />
             </div>
@@ -597,7 +550,8 @@ const Home = () => {
             <div className="relative">
               <img
                 src={adi}
-                alt="Photographer"
+                 loading="lazy"
+                decoding="async"
                 className="w-full h-[300px] md:h-[600px] object-cover"
               />
             </div>
