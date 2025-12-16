@@ -23,14 +23,14 @@ export async function getIntroductionSection() {
   const res = await fetch(`${WP_BASE}/first_section`);
   if (!res.ok) throw new Error("Failed to fetch static section");
   const data = await res.json();
-  return Array.isArray(data) ? data[0] : data; // handle both array and object
+  return Array.isArray(data) ? data[0] : data;
 }
 
 export async function getHomeVideo() {
   const res = await fetch(`${WP_BASE}/video_section`);
   if (!res.ok) throw new Error("Failed to fetch video");
   const data = await res.json();
-  return Array.isArray(data) ? data[0] : data; // handle both array and object
+  return Array.isArray(data) ? data[0] : data;
 }
 
 export async function getFeaturedWorks() {
@@ -81,7 +81,7 @@ export async function getTestimonials() {
 
       if (couple && quote) {
         testimonials.push({
-          id: `testimonial-${sectionIndex}-${num}`, // ✅ UNIQUE & STABLE
+          id: `testimonial-${sectionIndex}-${num}`,
           couple,
           quote,
           image,
@@ -93,14 +93,12 @@ export async function getTestimonials() {
   return testimonials;
 }
 
-/* ---------------- GALLERY POSTS ---------------- */
 
 export async function getGalleryPosts() {
   const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/gallery_posts_list`);
   if (!res.ok) throw new Error("Failed to fetch gallery posts");
   const galleries = await res.json();
   
-  // Map galleries with extracted data from meta_box
   const galleriesWithImages = galleries.map((gallery: any) => {
     
     return {

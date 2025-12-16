@@ -22,12 +22,14 @@ export default function Article({
 }) {
   const location = useLocation();
   const [galleryData, setGalleryData] = useState<GalleryPost | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalFading, setModalFading] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+
+  const [heroLoaded, setHeroLoaded] = useState(false);
   const galleryRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -50,7 +52,6 @@ export default function Article({
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        setLoading(true);
         const data = await getGalleryPostBySlug(slug);
         if (data) setGalleryData(data);
         else setError("Gallery not found");
@@ -62,6 +63,25 @@ export default function Article({
     };
     if (slug) fetchGallery();
   }, [slug]);
+
+
+    useEffect(() => {
+      if (!heroImage) return;
+
+      const img = new Image();
+      img.src = heroImage;
+
+      img
+        .decode()
+        .then(() => {
+          requestAnimationFrame(() => {
+            setHeroLoaded(true);
+          });
+        })
+        .catch(() => {
+          setHeroLoaded(true);
+        });
+    }, [heroImage]);
 
   const openModal = (image: string) => {
     setSelectedImage(image);
@@ -133,7 +153,12 @@ export default function Article({
       <>
         {heroImage && (
           <div className="w-full mb-4 relative">
-            <img src={heroImage} className="w-full h-auto object-cover" />
+            <img
+              src={heroImage}
+              className="w-full h-auto object-cover"
+              onLoad={() => setHeroLoaded(true)}
+              onError={() => setHeroLoaded(true)}
+            />
             <div className="absolute inset-0 flex flex-col bg-black/10 text-white px-4 sm:px-8 md:px-16 lg:px-20 py-12 sm:py-16 md:py-20 lg:py-28 justify-center">
               <h1 className="text-[10px] sm:text-base md:text-lg font-cormorant mb-2 md:mb-4 [letter-spacing:0.2em] md:[letter-spacing:0.3em] uppercase">
                 {category} - <span className="font-agraham">{formatDate(dateValue)}</span>
@@ -158,7 +183,18 @@ export default function Article({
         <title>{title} - {category} | The Treasured Tales</title>
       </Helmet>
 
-      {!loading && !error && (
+      {!heroLoaded && !error && (
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+            <p className="text-xs tracking-widest font-montserrat text-black/70">
+              LOADING
+            </p>
+          </div>
+        </div>
+      )}
+
+      {heroLoaded && !error && (
         <div
           ref={galleryRef}
           className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6"

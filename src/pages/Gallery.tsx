@@ -87,9 +87,12 @@ const Gallery = () => {
       </Helmet>
 
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-40">
-          <div className="text-center">
-            <p className="text-xl sm:text-2xl md:text-3xl font-agraham text-gray-400 mb-4 tracking-wider animate-pulse">Loading</p>
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+            <p className="text-xs tracking-widest font-montserrat text-black/70">
+              LOADING
+            </p>
           </div>
         </div>
       )}
