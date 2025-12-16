@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, MapPin, Check } from 'lucide-react';
 import { Helmet } from "react-helmet";
+import { WP_API_URL } from '../services/wpApi';
 
 const Contact = () => {
   const [formState, setFormState] = useState({
@@ -61,7 +62,7 @@ const Contact = () => {
     setError(null);
     
     try {
-      const response = await fetch('https://sandybrown-tiger-324612.hostingersite.com/wp-json/custom/v1/contact', {
+      const response = await fetch(`${WP_API_URL}/wp-json/custom/v1/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

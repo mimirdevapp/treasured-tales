@@ -1,4 +1,5 @@
-const WP_BASE = import.meta.env.VITE_WP_BASE;
+export const WP_API_URL = import.meta.env.VITE_WP_BASE;
+const WP_BASE = `${WP_API_URL}/wp-json/wp/v2`;
 
 export async function getHeroSlides() {
   const res = await fetch(`${WP_BASE}/slide_show`);

@@ -326,7 +326,7 @@ const Home = () => {
               <img
                 src={homeSection?.home_image || ""}
                 alt="Introduction Post"
-                className="w-full h-[250px] sm:h-[300px] md:h-[600px] object-cover"
+                className="w-full h-[400px] sm:h-[500px] md:h-[600px] object-cover"
               />
             </div>
             <div className="space-y-4 md:space-y-8 md:order-1">
@@ -620,26 +620,43 @@ const Home = () => {
 
       {/* Lightbox Modal */}
       {modalOpen && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 ${modalFading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
-          <div className="relative w-full h-full max-w-6xl max-h-[90vh] mx-auto p-2 md:p-8 flex items-center justify-center">
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 md:top-6 md:right-6 z-10 bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors rounded-full p-4 md:p-3 touch-manipulation"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className={`w-full h-full flex items-center justify-center ${modalFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} transition-all duration-300`}>
-              <img
-                src={selectedImage}
-                alt="Full size image"
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
+        <div
+          className={`fixed inset-0 z-50 bg-black/95 transition-opacity duration-300 ${
+            modalFading ? 'opacity-0' : 'opacity-100'
+          }`}
+          onClick={closeModal}
+        >
+          <button
+            onClick={closeModal}
+            aria-label="Close"
+            className="
+              absolute top-4 right-4 z-50
+              h-10 w-10
+              flex items-center justify-center
+              rounded-full
+              bg-white/15 backdrop-blur-sm
+              text-white text-lg
+              hover:bg-white/25
+              transition-colors
+              touch-manipulation
+            "
+          >
+            ✕
+          </button>
+
+          <div
+            className="w-screen h-screen flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedImage}
+              alt="Full size image"
+              className="h-screen w-auto max-w-full object-contain"
+            />
           </div>
         </div>
       )}
+
 
       <style jsx="true"> 
       {`
