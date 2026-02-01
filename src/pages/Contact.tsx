@@ -112,7 +112,7 @@ const Contact = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Mail className="h-6 w-6" />
-                <span><a href="mailto:adithya@treasuredtales.in" className="hover:text-[#8C5117] transition-colors">adithya@treasuredtales.in</a></span>
+                <span><a href="mailto:thetreasuredtales.in@gmail.com" className="hover:text-[#8C5117] transition-colors">thetreasuredtales.in@gmail.com</a></span>
               </div>
               <div className="flex items-center space-x-4">
                 <Phone className="h-6 w-6" />

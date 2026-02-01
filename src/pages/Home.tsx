@@ -565,7 +565,7 @@ const Home = () => {
                 Our journey is guided by the belief that every photograph should tell a story-a story of love, of laughter, of tears of joy. We understand that behind every smile and every tear lies a tale waiting to be treasured forever.
               </p>
               <div className="pt-2 md:pt-4">
-                <span className="font-cormorant text-2xl md:text-3xl italic">Adhitya Ullal</span>
+                <span className="font-cormorant text-2xl md:text-3xl italic">Adithya D Ullal</span>
               </div>
             </div>
           </div>
