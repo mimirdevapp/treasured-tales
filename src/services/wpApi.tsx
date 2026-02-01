@@ -5,14 +5,7 @@ let heroSlidesCache: any[] | null = null;
 
 export async function getHeroSlides() {
   if (heroSlidesCache) return heroSlidesCache;
-  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/slide-show`, {
-    mode: 'cors',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    cache: 'no-store',
-  });
+  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/slide-show`);
   if (!res.ok) {
     throw new Error("Failed to fetch hero slides");
   }
@@ -102,14 +95,7 @@ export async function getTestimonials() {
 
 
 export async function getGalleryPosts() {
-  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/gallery_posts_list`, {
-    mode: 'cors',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    cache: 'no-store',
-  });
+  const res = await fetch(`${WP_API_URL}/wp-json/tt/v1/gallery_posts_list`);
   if (!res.ok) throw new Error("Failed to fetch gallery posts");
   const galleries = await res.json();
   
