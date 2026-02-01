@@ -8,7 +8,33 @@ import { ArrowRight } from 'lucide-react';
 import { getHeroSlides, getIntroductionSection, getHomeVideo, getFeaturedWorks, getTestimonials, getGalleryPosts } from '../services/wpApi';
 import ReactPlayer from 'react-player/lazy'; // Import ReactPlayer with lazy loading
 import adi from '../assets/aadithya.jpg'
+import mobile1 from '../assets/mobile1.jpg';
+import mobile2 from '../assets/mobile2.jpg';
+import mobile3 from '../assets/mobile3.jpg';
+import mobile4 from '../assets/mobile4.jpg';
+import mobile5 from '../assets/mobile5.jpg';
+import mobile6 from '../assets/mobile6.jpg';
+import mobile7 from '../assets/mobile7.jpg';
+import mobile8 from '../assets/mobile8.jpg';
+import mobile9 from '../assets/mobile9.jpg';
+import mobile10 from '../assets/mobile10.jpg';
+import mobile11 from '../assets/mobile11.jpg';
 import decode from '../utils/htmlDecode';
+
+// Preset images for mobile hero section
+const PRESET_MOBILE_HERO_IMAGES = [
+  mobile1,
+  mobile2,
+  mobile3,
+  mobile4,
+  mobile5,
+  mobile6,
+  mobile7,
+  mobile8,
+  mobile9,
+  mobile10,
+  mobile11
+];
 
 const Home = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -36,13 +62,18 @@ const Home = () => {
   useEffect(() => {
     const fetchCritical = async () => {
       try {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        // Use preset images for mobile, fetch API for desktop
+        if (isMobile) {
+          setHeroImages(PRESET_MOBILE_HERO_IMAGES);
+        } else {
+          const [slides] = await Promise.all([
+            getHeroSlides(),
+          ]);
 
-        const [slides] = await Promise.all([
-          getHeroSlides(),
-        ]);
-
-        if (slides?.length > 0) {
-          setHeroImages(slides.map((s: any) => s.featured_media_url || ""));
+          if (slides?.length > 0) {
+            setHeroImages(slides.map((s: any) => s.featured_media_url || ""));
+          }
         }
 
       } catch (e) {
