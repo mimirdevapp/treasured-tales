@@ -9,6 +9,7 @@ import { getHeroSlides, getIntroductionSection, getHomeVideo, getFeaturedWorks, 
 import ReactPlayer from 'react-player/lazy'; // Import ReactPlayer with lazy loading
 import adi from '../assets/aadithya.jpg'
 import decode from '../utils/htmlDecode';
+import SEO from '../components/SEO';
 
 // Preset images for mobile hero section
 const PRESET_MOBILE_HERO_IMAGES = [
@@ -254,8 +255,52 @@ const Home = () => {
 
   return (
     <div className="overflow-hidden">
+      <SEO
+        title="Home | The Treasured Tales"
+        description="Premium wedding photography and event coverage by Adithya D Ullal. Artistic storytelling, elegant composition, and timeless memories captured with passion across India."
+        keywords="wedding photography, event photography, Adithya D Ullal, The Treasured Tales, professional photographer, Indian wedding photographer, event photography services"
+        image={heroImages[0] || "https://thetreasuredtales.com/og-image.jpg"}
+        url="https://thetreasuredtales.com/"
+        canonical="https://thetreasuredtales.com/"
+      >
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            "name": "The Treasured Tales",
+            "image": "https://thetreasuredtales.com/og-image.jpg",
+            "description": "Premium wedding photography and event coverage",
+            "url": "https://thetreasuredtales.com",
+            "telephone": "+91-XXXXXXXXXX",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "IN"
+            },
+            "priceRange": "$$$",
+            "areaServed": "IN",
+            "serviceType": "Photography",
+            "knowsAbout": ["Wedding Photography", "Event Photography", "Portrait Photography"],
+            "sameAs": [
+              "https://www.instagram.com/thetreasuredtales.in/", 
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": "Adithya D Ullal",
+            "url": "https://thetreasuredtales.com",
+            "jobTitle": "Professional Wedding & Event Photographer",
+            "image": "https://thetreasuredtales.com/adithya.jpg",
+            "description": "Adithya D Ullal is a premium wedding and event photographer specializing in artistic storytelling",
+            "sameAs": [
+              "https://www.instagram.com/thetreasuredtales.in/",
+            ]
+          })}
+        </script>
+      </SEO>
       <Helmet>
-        <title>Home | The Treasured Tales</title>
         {heroImages[0] && (
         <link
           rel="preload"
@@ -298,19 +343,19 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div className="md:order-2">
               <img
-                src={homeSection?.home_image?.sizes?.large || ""}
+                src={homeSection?.home_image?.sizes?.large || "https://cms.thetreasuredtales.com/wp-content/uploads/2025/12/prajwal-akshitha-wedding-1-529-683x1024.jpg"}
                 className="w-full h-[400px] sm:h-[500px] md:h-[600px] object-cover"
               />
             </div>
             <div className="space-y-4 md:space-y-8 md:order-1">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-agraham font-light text-gray-800 leading-tight">
-                {homeSection?.home_title || ""}
+                {homeSection?.home_title || "Where Memories Become Treasured Tales"}
               </h2>
               <h3 className="text-base md:text-lg tracking-widest text-[#8C5117] font-semibold italic font-cormorant">
                 {homeSection?.home_subtext ? (
                   <span className="text-[#8C5117]">{homeSection.home_subtext}</span>
                 ) : (
-                  ""
+                  <span className="text-[#8C5117]">real emotions. honest moments. forever preserved.</span>
                 )}
               </h3>
               <div className="w-20 h-[1px] bg-black/30"></div>
@@ -318,7 +363,7 @@ const Home = () => {
                 {homeSection?.home_description ? (
                   homeSection.home_description.split('\r\n')[0]
                 ) : (
-                  ""
+                  "At The Treasured Tales, we believe every wedding is a beautiful story waiting to be told. Our passion is to capture the real emotions, laughter, & tears of joy that make your day unique. We focus on the candid and heartfelt moments that truly matter, ensuring every memory is preserved.\nLet us turn your special day into a treasured tale you'll cherish forever, filled with memories that last a lifetime."
                 )}
               </p>
               {homeSection?.home_description && homeSection.home_description.includes('\r\n') && (

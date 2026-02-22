@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { getGalleryPostBySlug } from '../services/wpApi';
 import decode from '../utils/htmlDecode';
+import SEO from '../components/SEO';
 
 interface GalleryPost {
   gallery_heading?: string;
@@ -23,6 +24,7 @@ export default function Article({
   const location = useLocation();
   const [galleryData, setGalleryData] = useState<GalleryPost | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalFading, setModalFading] = useState(false);
@@ -179,9 +181,30 @@ export default function Article({
 
   return (
     <div className="pt-24 sm:pt-20 md:pt-24 lg:pt-28">
-      <Helmet>
-        <title>{title} - {category} | The Treasured Tales</title>
-      </Helmet>
+      <SEO
+        title={`${title} - ${category}`}
+        description={`${category} photography by Adithya D Ullal at The Treasured Tales. ${decode(subtitle)}`}
+        keywords={`${category} photography, wedding photography, event photography, The Treasured Tales, Adithya D Ullal`}
+        image={heroImage || "https://thetreasuredtales.com/og-image.jpg"}
+        url={`https://thetreasuredtales.com/gallery/${slug}`}
+        canonical={`https://thetreasuredtales.com/gallery/${slug}`}
+      >
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "name": title,
+            "description": decode(subtitle),
+            "image": heroImage,
+            "creator": {
+              "@type": "Person",
+              "name": "Adithya D Ullal"
+            },
+            "datePublished": new Date(dateValue).toISOString(),
+            "keywords": category
+          })}
+        </script>
+      </SEO>
 
       {!heroLoaded && !error && (
         <div className="flex items-center justify-center min-h-[70vh]">

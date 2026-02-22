@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { getGalleryPosts } from '../services/wpApi';
+import SEO from '../components/SEO';
 
 const Gallery = () => {
   const scrollRevealSections = useRef([]);
@@ -82,9 +83,27 @@ const Gallery = () => {
 
   return (
     <div className="pt-16">
-      <Helmet>
-        <title>Gallery | The Treasured Tales</title>
-      </Helmet>
+      <SEO
+        title="Gallery | The Treasured Tales"
+        description="View The Treasured Tales' comprehensive gallery of wedding photography, event coverage, and artistic visual stories by Adithya D Ullal."
+        keywords="wedding gallery, event photography gallery, wedding photos, Adithya D Ullal, The Treasured Tales, photography portfolio"
+        url="https://thetreasuredtales.com/gallery"
+        canonical="https://thetreasuredtales.com/gallery"
+      >
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Gallery - The Treasured Tales",
+            "description": "Wedding and event photography gallery",
+            "url": "https://thetreasuredtales.com/gallery",
+            "mainEntity": {
+              "@type": "ProfessionalService",
+              "name": "The Treasured Tales"
+            }
+          })}
+        </script>
+      </SEO>
 
       {loading && (
         <div className="flex items-center justify-center min-h-[70vh]">

@@ -1,0 +1,11 @@
+# Robots.txt for The Treasured Tales
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /private
+
+# Sitemap location
+Sitemap: https://thetreasuredtales.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1

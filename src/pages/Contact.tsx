@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, MapPin, Check } from 'lucide-react';
 import { Helmet } from "react-helmet";
 import { WP_API_URL } from '../services/wpApi';
+import SEO from '../components/SEO';
 
 const Contact = () => {
   const [formState, setFormState] = useState({
@@ -93,9 +94,31 @@ const Contact = () => {
 
   return (
     <div className="pt-16">
-      <Helmet>
-                <title>Contact | The Treasured Tales</title>
-            </Helmet>
+      <SEO
+        title="Contact Us | The Treasured Tales"
+        description="Get in touch with Adithya D Ullal for wedding photography, event coverage, and professional photography services. Contact The Treasured Tales today."
+        keywords="contact photographer, booking, wedding photography inquiry, The Treasured Tales, Adithya D Ullal"
+        url="https://thetreasuredtales.com/contact"
+        canonical="https://thetreasuredtales.com/contact"
+      >
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ContactPage",
+            "name": "Contact The Treasured Tales",
+            "url": "https://thetreasuredtales.com/contact",
+            "mainEntity": {
+              "@type": "ProfessionalService",
+              "name": "The Treasured Tales",
+              "contact": {
+                "@type": "ContactPoint",
+                "contactType": "Customer Service",
+                "availableLanguage": "en"
+              }
+            }
+          })}
+        </script>
+      </SEO>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="scroll-reveal opacity-0 transition-all duration-1000 ease-out transform translate-y-8">
           <h1 className="text-5xl lg:text-7xl font-agraham mb-4 lg:mb-6 text-gray-800">Get in Touch</h1>
