@@ -259,7 +259,7 @@ const Home = () => {
         title="Home | The Treasured Tales"
         description="Premium wedding photography and event coverage by Adithya D Ullal. Artistic storytelling, elegant composition, and timeless memories captured with passion across India."
         keywords="wedding photography, event photography, Adithya D Ullal, The Treasured Tales, professional photographer, Indian wedding photographer, event photography services"
-        image={heroImages[0] || "https://thetreasuredtales.com/og-image.jpg"}
+        image={heroImages[0] || "https://thetreasuredtales.com/og-image.png"}
         url="https://thetreasuredtales.com/"
         canonical="https://thetreasuredtales.com/"
       >
@@ -268,7 +268,7 @@ const Home = () => {
             "@context": "https://schema.org",
             "@type": "ProfessionalService",
             "name": "The Treasured Tales",
-            "image": "https://thetreasuredtales.com/og-image.jpg",
+            "image": "https://thetreasuredtales.com/og-image.png",
             "description": "Premium wedding photography and event coverage",
             "url": "https://thetreasuredtales.com",
             "telephone": "+91-XXXXXXXXXX",

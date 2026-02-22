@@ -185,7 +185,7 @@ export default function Article({
         title={`${title} - ${category}`}
         description={`${category} photography by Adithya D Ullal at The Treasured Tales. ${decode(subtitle)}`}
         keywords={`${category} photography, wedding photography, event photography, The Treasured Tales, Adithya D Ullal`}
-        image={heroImage || "https://thetreasuredtales.com/og-image.jpg"}
+        image={heroImage || "https://thetreasuredtales.com/og-image.png"}
         url={`https://thetreasuredtales.com/gallery/${slug}`}
         canonical={`https://thetreasuredtales.com/gallery/${slug}`}
       >
