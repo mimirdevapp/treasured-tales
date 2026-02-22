@@ -200,7 +200,7 @@ export default function Article({
               "@type": "Person",
               "name": "Adithya D Ullal"
             },
-            "datePublished": new Date(dateValue).toISOString(),
+            ...(dateValue && { "datePublished": new Date(dateValue).toISOString() }),
             "keywords": category
           })}
         </script>
