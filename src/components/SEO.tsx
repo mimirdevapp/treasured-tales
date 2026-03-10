@@ -14,9 +14,9 @@ interface SEOProps {
 }
 
 const SEO: React.FC<SEOProps> = ({
-  title = 'Home | The Treasured Tales',
+  title = 'The Treasured Tales - Premium Wedding & Event Photography',
   description = 'Premium wedding photography and event coverage by Adithya D Ullal. Artistic storytelling and elegant composition. Serving clients across India.',
-  keywords = 'wedding photography, event photography, Adithya D Ullal, The Treasured Tales, professional photographer, wedding photographer',
+  keywords = 'thetreasuredtales, wedding photography, event photography, Adithya D Ullal, The Treasured Tales, professional photographer, wedding photographer',
   image = 'https://thetreasuredtales.com/og-image.png',
   url = 'https://thetreasuredtales.com',
   type = 'website',
